@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>jSanity Demo</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=10" >
+<script type="text/javascript" src="jQuery/jquery-1.9.1.min.js"></script>
+<!-- setImmediate Polyfill for backwards compat, include as necessary -->
+<!-- <script type="text/javascript" src="setImmediate.js"></script> -->
+<script type="text/javascript" src="jsanity-0.2.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	$("#badHtmlDiv").val("<script>alert(/xss/);</" + "script>\r\n\r\n<img src=x onerror=alert('xss') />\r\n\r\nTesting script...");
+
+	$("#badHtmlData").val("<p class=\"myClass\" \r\n   data-foo=\"somedata\" \r\n   name=\"foobar\" \r\n   id=\"baz\">\r\n\r\nElement with a data attribute\r\n\r\n</p>");
+
+        $("#badHtmlCircle").val("<b style=\"color:red;position:fixed;top:0;left:0;font-family:Arial,Helvetica,sans-serif;\">\r\n\r\nzzzzz<textarea>zzzz</textarea>\r\n\r\n<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"><circle cx=\"100\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"2\" fill=\"red\"/>\r\n</svg>\r\n\r\n</b>");
+
+	$("#badHtmlSpan").val("<a href=\"http://www.microsoft.com\">\r\nlink to Microsoft\r\n</a><br>\r\n\r\n<a href=\"javascript:alert();\">\r\njavascript link\r\n</a><br>\r\n\r\n<a href=\"asdf.htm\">\r\nrelative link\r\n</a>");
+
+});
+
+function nosani1()
+{
+	$(".jSanitizeMe1").html($("#badHtmlDiv").val());
+}
+
+function sani1(isoDOM)
+{
+	// Specify options on the markup
+        // Options here take precedence over and override options specified in the method call (and default options)
+	// $('#targetDiv').data('jSanity', { inputString: $("#badHtmlDiv").val(), overflow: 'scroll', allowLinks: true, dataAttributeCallback: function(name, value) { return "new value"; }, externalContentCallback: function(context, name, data, knownProtocols) { if (context === "CSSURL") { return "url(http://i.microsoft.com/global/ImageStore/PublishingImages/logos/ms-mark/microsoft_logo_87x15.png)" } else return "http://i.microsoft.com/global/ImageStore/PublishingImages/logos/ms-mark/microsoft_logo_87x15.png"; } });
+	$('#targetDiv').data('jSanity', { inputString: $("#badHtmlDiv").val(), overflow: 'scroll', allowLinks: true });
+
+	// Call the sanitize method across all selected elements
+        // Options here take precedence over and override default values (but not options attached to markup)
+	$(".jSanitizeMe1").jSanity('sanitize', { allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 } });
+}
+
+function saniData(isoDOM)
+{
+	// Specify options on the markup
+        // Options here take precedence over and override options specified in the method call (and default options)
+	$('#targetData').data('jSanity', { inputString: $("#badHtmlData").val(), overflow: 'scroll', allowLinks: true, dataAttributeCallback: function(name, value) { alert('[CALLBACK] Found a data-* attribute: ' + name + '=' + value); return "new value"; } });
+
+	// Call the sanitize method across all selected elements
+        // Options here take precedence over and override default values (but not options attached to markup)
+	$(".jSanitizeMeData").jSanity('sanitize', { allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 } });
+}
+
+function saniCircle(isoDOM)
+{
+	// Specify options on the markup
+        // Options here take precedence over and override options specified in the method call (and default options)
+	$('#targetCircle').data('jSanity', { inputString: $("#badHtmlCircle").val(), overflow: 'scroll', allowLinks: true });
+
+	// Call the sanitize method across all selected elements
+        // Options here take precedence over and override default values (but not options attached to markup)
+	$(".jSanitizeMeCircle").jSanity('sanitize', { allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 } });
+}
+
+function sani2(isoDOM)
+{
+	// Specify options on the markup
+        // Options here take precedence over and override options specified in the method call (and default options)
+	$('#targetSpan').data('jSanity', { inputString: $("#badHtmlSpan").val(), linkClickCallback: function () { alert('You clicked a link!  Script will let it proceed...'); return true; } });
+
+	// Call the sanitize method across all selected elements
+        // Options here take precedence over and override default values (but not options attached to markup)
+	$(".jSanitizeMe2").jSanity('sanitize', { allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 } });
+}
+
+</script>
+
+<div style="font-size:200%">
+
+Simple markup with script, output to a DIV<br>
+<textarea style="font-size:50%" ID="badHtmlDiv" rows="24" cols="59">
+</textarea>
+<br>
+
+<!-- 
+Note: Be sure to specify a unique ID for all sanitization targets.  This allows jSanity to isolate markup sent to different targets.
+      It is also a smart idea to visually represent this content on the page as having come from a particular origin.  For example,
+      consider using jQuery.UI to display a tooltip when the user hovers over this element.  This will help users make valid
+      trust decisions about the contained content.
+--> 
+<div ID="targetDiv" class="jSanitizeMe1" style="border-style: dotted; border-width: 1px">
+[Output DIV #1]
+</div>
+<input type=button value="Inject without sanitization" onclick="nosani1();">
+<input type=button value="Sanitize!" onclick="sani1(false);">
+<input type=button value="Show output markup" onclick="alert($('.jSanitizeMe1').html());">
+
+<br>
+<br>
+
+Data attribute callback and NAME/ID prefixing example<br>
+<textarea style="font-size:50%" ID="badHtmlData" rows="24" cols="59">
+</textarea>
+<br>
+<div ID="targetData" class="jSanitizeMeData" style="border-style: dotted; border-width: 1px">
+[Output DIV #2]
+</div>
+<code>
+dataAttributeCallback: function(name, value) <br>{ <br> alert('[CALLBACK] Found a data-* attribute: ' + name + '=' + value);<br><br> return "new value"; <br>}<br>
+</code>
+<input type=button value="Sanitize with a data attribute handler" onclick="saniData(false);">
+<input type=button value="Show output markup" onclick="alert($('.jSanitizeMeData').html());">
+
+<br>
+<br>
+
+SVG namespace support and overlay attack mitigation<br>
+<textarea style="font-size:50%" ID="badHtmlCircle" rows="24" cols="59">
+</textarea>
+<br>
+<div ID="targetCircle" class="jSanitizeMeCircle" style="border-style: dotted; border-width: 1px">
+[Output DIV #3]
+</div>
+<input type=button value="Sanitize with .toStaticHTML()" onclick="$('#targetCircle').html(toStaticHTML($('#badHtmlCircle').val()))">
+<input type=button value="Sanitize with jSanity" onclick="saniCircle(false);">
+
+<br>
+<br>
+
+Link handling and link click callback:<br>
+<textarea style="font-size:50%" ID="badHtmlSpan" rows="24" cols="59">
+</textarea>
+<br>
+
+<span ID="targetSpan" class="jSanitizeMe2" style="border-style: dotted; border-width: 1px">
+[Output SPAN]
+</span>
+<br>
+<input type=button value="Sanitize!" onclick="sani2(false);">
+<br>
+<br>
+</div>
+</body>
+</html>
