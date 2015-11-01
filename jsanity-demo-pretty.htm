@@ -3,9 +3,10 @@
 <head>
   <title>jSanity Demo</title>
   <meta http-equiv="X-UA-Compatible" content="IE=10" >
-<script type="text/javascript" src="jQuery/jquery-1.9.1.min.js"></script>
-<!-- setImmediate Polyfill for backwards compat, include as necessary -->
-<!-- <script type="text/javascript" src="setImmediate.js"></script> -->
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.js"></script>
+<!-- Temporary setImmediate Polyfill for browsers without setImmediate, include as necessary -->
+<!-- Use https://github.com/YuzuJS/setImmediate/blob/master/setImmediate.js -->
+<script type="text/javascript" src="setImmediate.js"></script>
 <script type="text/javascript" src="jsanity-0.2.js"></script>
 </head>
 <body>
@@ -83,12 +84,12 @@ Simple markup with script, output to a DIV<br>
 </textarea>
 <br>
 
-<!-- 
+<!--
 Note: Be sure to specify a unique ID for all sanitization targets.  This allows jSanity to isolate markup sent to different targets.
       It is also a smart idea to visually represent this content on the page as having come from a particular origin.  For example,
       consider using jQuery.UI to display a tooltip when the user hovers over this element.  This will help users make valid
       trust decisions about the contained content.
---> 
+-->
 <div ID="targetDiv" class="jSanitizeMe1" style="border-style: dotted; border-width: 1px">
 [Output DIV #1]
 </div>
