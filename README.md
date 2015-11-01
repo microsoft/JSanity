@@ -1,9 +1,9 @@
 # jSanity
 A secure-by-default, performant, cross-browser client-side HTML sanitization library.
 
-Reference:
-[OWASP AppSec EU 2013 Talk](https://www.youtube.com/watch?v=n18Hwaxycwc)
-[Slides](http://www.slideshare.net/404aspx/insane-in-the-iframe)
+Reference:<br>
+[OWASP AppSec EU 2013 Talk](https://www.youtube.com/watch?v=n18Hwaxycwc)<br>
+[Slides](http://www.slideshare.net/404aspx/insane-in-the-iframe)<br>
 
 ## Status
 
