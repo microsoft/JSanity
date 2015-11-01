@@ -7,7 +7,7 @@ Reference:
 
 ## Status
 
-jSanity was just recently revived from cold storage.  Only very minimal changes have been made so far since the code was originally developed in 2013.
+jSanity was just recently revived from two years of cold storage.  Only very minimal changes have been made so far since the code was originally developed.
 
 
 ## Demo / Benchmark pages
