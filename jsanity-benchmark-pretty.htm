@@ -13,11 +13,11 @@
 <script type="text/javascript">
 
 $(document).ready(function() {
-	$.when($.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/YouTube.htm" }).done(function ( data ) { $("#sourceYouTube").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Bing.htm" }).done(function ( data ) { $("#sourceBing").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/GoogleNews.htm" }).done(function ( data ) { $("#sourceGoogleNews").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/GMail.htm" }).done(function ( data ) { $("#sourceGMail").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Google.htm" }).done(function ( data ) { $("#sourceGoogle").val(data); })
+	$.when($.ajax({ url: "http://" + location.hostname + "/tests/YouTube.htm" }).done(function ( data ) { $("#sourceYouTube").val(data); }),
+	$.ajax({ url: "http://" + location.hostname + "/tests/Bing.htm" }).done(function ( data ) { $("#sourceBing").val(data); }),
+	$.ajax({ url: "http://" + location.hostname + "/tests/GoogleNews.htm" }).done(function ( data ) { $("#sourceGoogleNews").val(data); }),
+	$.ajax({ url: "http://" + location.hostname + "/tests/GMail.htm" }).done(function ( data ) { $("#sourceGMail").val(data); }),
+	$.ajax({ url: "http://" + location.hostname + "/tests/Google.htm" }).done(function ( data ) { $("#sourceGoogle").val(data); })
 	).done($.proxy(function () { $("#loadingDiv").html("Ready!"); $(".bClass").attr("disabled", false)}, this));
 });
 
