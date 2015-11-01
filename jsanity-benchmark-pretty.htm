@@ -3,8 +3,9 @@
   <title>jSanity Benchmark</title>
   <meta http-equiv="X-UA-Compatible" content="IE=10" >
 <script type="text/javascript" src="jQuery/jquery-1.9.1.min.js"></script>
-<!-- setImmediate Polyfill for backwards compat, include as necessary -->
-<!-- <script type="text/javascript" src="setImmediate.js"></script> -->
+<!-- Temporary setImmediate Polyfill for browsers without setImmediate, include as necessary -->
+<!-- Use https://github.com/YuzuJS/setImmediate/blob/master/setImmediate.js -->
+<script type="text/javascript" src="setImmediate.js"></script>
 <script type="text/javascript" src="jsanity-0.2.js"></script>
 </head>
 <body>
@@ -12,16 +13,11 @@
 <script type="text/javascript">
 
 $(document).ready(function() {
-	$.when($.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Amazon.htm" }).done(function ( data ) { $("#sourceAmazon").val(data); }),
+	$.when($.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/YouTube.htm" }).done(function ( data ) { $("#sourceYouTube").val(data); }),
 	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Bing.htm" }).done(function ( data ) { $("#sourceBing").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/CNN.htm" }).done(function ( data ) { $("#sourceCNN").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Economist.htm" }).done(function ( data ) { $("#sourceEconomist").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Facebook.htm" }).done(function ( data ) { $("#sourceFacebook").val(data); }),
+	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/GoogleNews.htm" }).done(function ( data ) { $("#sourceGoogleNews").val(data); }),
 	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/GMail.htm" }).done(function ( data ) { $("#sourceGMail").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Google.htm" }).done(function ( data ) { $("#sourceGoogle").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Wikipedia.htm" }).done(function ( data ) { $("#sourceWikipedia").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Yahoo.htm" }).done(function ( data ) { $("#sourceYahoo").val(data); }),
-	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Yelp.htm" }).done(function ( data ) { $("#sourceYelp").val(data); })
+	$.ajax({ url: "http://" + location.hostname + "/dross/jSanity/tests/Google.htm" }).done(function ( data ) { $("#sourceGoogle").val(data); })
 	).done($.proxy(function () { $("#loadingDiv").html("Ready!"); $(".bClass").attr("disabled", false)}, this));
 });
 
@@ -33,13 +29,13 @@ var setTerm;
 
 function timeCheck()
 {
-        var dateSinceLast = null;
+  var dateSinceLast = null;
 	var newTime;
 	var badChars;
 
 	newTime = new Date().getTime();
-        dateSinceLast = newTime - lastTime;
-        lastTime = newTime;
+  dateSinceLast = newTime - lastTime;
+  lastTime = newTime;
 
 	badChars = "";
 	if (dateSinceLast > 50) {
@@ -78,11 +74,10 @@ function postSanitize()
 {
 	document.getElementById("syncReturnDoneDiv").innerHTML = new Date().getTime() - time1;
 
-        // Need to set 'done' state via a 0ms setTimeout to properly account for DOM operations to complete
-	$.when($('#targetAmazon').data('jSanityPromise'), $('#targetBing').data('jSanityPromise'), $('#targetCNN').data('jSanityPromise'),
-		$('#targetEconomist').data('jSanityPromise'), $('#targetFacebook').data('jSanityPromise'), $('#targetGMail').data('jSanityPromise'),
-		$('#targetGoogle').data('jSanityPromise'), $('#targetWikipedia').data('jSanityPromise'), $('#targetYahoo').data('jSanityPromise'),
-		$('#targetYelp').data('jSanityPromise')).then(function(){ setTimeout('fullDone = true; document.getElementById("fullDoneDiv").innerHTML = new Date().getTime() - time1;', 0); }, function(failText){ fullDone = true; document.getElementById("fullDoneDiv").innerHTML = failText; });
+  // Need to set 'done' state via a 0ms setTimeout to properly account for DOM operations to complete
+	$.when($('#targetYouTube').data('jSanityPromise'), $('#targetBing').data('jSanityPromise'),
+		$('#targetGoogleNews').data('jSanityPromise'), $('#targetGMail').data('jSanityPromise'),
+		$('#targetGoogle').data('jSanityPromise')).then(function(){ setTimeout('fullDone = true; document.getElementById("fullDoneDiv").innerHTML = new Date().getTime() - time1;', 0); }, function(failText){ fullDone = true; document.getElementById("fullDoneDiv").innerHTML = failText; });
 }
 
 function sani(isoDOM)
@@ -90,16 +85,11 @@ function sani(isoDOM)
 	resetScript();
 
 	// Specify options on the markup
-	$('#targetAmazon').data('jSanity', { inputString: $("#sourceAmazon").val() });
+	$('#targetYouTube').data('jSanity', { inputString: $("#sourceYouTube").val() });
 	$('#targetBing').data('jSanity', { inputString: $("#sourceBing").val() });
-	$('#targetCNN').data('jSanity', { inputString: $("#sourceCNN").val() });
-	$('#targetEconomist').data('jSanity', { inputString: $("#sourceEconomist").val() });
-	$('#targetFacebook').data('jSanity', { inputString: $("#sourceFacebook").val() });
+	$('#targetGoogleNews').data('jSanity', { inputString: $("#sourceGoogleNews").val() });
 	$('#targetGMail').data('jSanity', { inputString: $("#sourceGMail").val() });
 	$('#targetGoogle').data('jSanity', { inputString: $("#sourceGoogle").val() });
-	$('#targetWikipedia').data('jSanity', { inputString: $("#sourceWikipedia").val() });
-	$('#targetYahoo').data('jSanity', { inputString: $("#sourceYahoo").val() });
-	$('#targetYelp').data('jSanity', { inputString: $("#sourceYelp").val() });
 
 	preSanitize();
 
@@ -113,16 +103,11 @@ function sani2(isoDOM)
 	resetScript();
 
 	// Specify options on the markup
-	$('#targetAmazon').data('jSanity', { inputString: $("#sourceAmazon").val() });
+	$('#targetYouTube').data('jSanity', { inputString: $("#sourceYouTube").val() });
 	$('#targetBing').data('jSanity', { inputString: $("#sourceBing").val() });
-	$('#targetCNN').data('jSanity', { inputString: $("#sourceCNN").val() });
-	$('#targetEconomist').data('jSanity', { inputString: $("#sourceEconomist").val() });
-	$('#targetFacebook').data('jSanity', { inputString: $("#sourceFacebook").val() });
+	$('#targetGoogleNews').data('jSanity', { inputString: $("#sourceGoogleNews").val() });
 	$('#targetGMail').data('jSanity', { inputString: $("#sourceGMail").val() });
 	$('#targetGoogle').data('jSanity', { inputString: $("#sourceGoogle").val() });
-	$('#targetWikipedia').data('jSanity', { inputString: $("#sourceWikipedia").val() });
-	$('#targetYahoo').data('jSanity', { inputString: $("#sourceYahoo").val() });
-	$('#targetYelp').data('jSanity', { inputString: $("#sourceYelp").val() });
 
 	preSanitize();
 
@@ -137,16 +122,11 @@ function saniToStaticHTML()
 
 	preSanitize();
 
-	$('#targetAmazon').html(toStaticHTML($("#sourceAmazon").val()));
+	$('#targetYouTube').html(toStaticHTML($("#sourceYouTube").val()));
 	$('#targetBing').html(toStaticHTML($("#sourceBing").val()));
-	$('#targetCNN').html(toStaticHTML($("#sourceCNN").val()));
-	$('#targetEconomist').html(toStaticHTML($("#sourceEconomist").val()));
-	$('#targetFacebook').html(toStaticHTML($("#sourceFacebook").val()));
+	$('#targetGoogleNews').html(toStaticHTML($("#sourceGoogleNews").val()));
 	$('#targetGMail').html(toStaticHTML($("#sourceGMail").val()));
 	$('#targetGoogle').html(toStaticHTML($("#sourceGoogle").val()));
-	$('#targetWikipedia').html(toStaticHTML($("#sourceWikipedia").val()));
-	$('#targetYahoo').html(toStaticHTML($("#sourceYahoo").val()));
-	$('#targetYelp').html(toStaticHTML($("#sourceYelp").val()));
 
 	postSanitize();
 }
@@ -157,16 +137,11 @@ function saniToStaticHTML2()
 
 	preSanitize();
 
-	toStaticHTML($("#sourceAmazon").val());
+	toStaticHTML($("#sourceYouTube").val());
 	toStaticHTML($("#sourceBing").val());
-	toStaticHTML($("#sourceCNN").val());
-	toStaticHTML($("#sourceEconomist").val());
-	toStaticHTML($("#sourceFacebook").val());
+	toStaticHTML($("#sourceGoogleNews").val());
 	toStaticHTML($("#sourceGMail").val());
 	toStaticHTML($("#sourceGoogle").val());
-	toStaticHTML($("#sourceWikipedia").val());
-	toStaticHTML($("#sourceYahoo").val());
-	toStaticHTML($("#sourceYelp").val());
 
 	postSanitize();
 }
@@ -207,26 +182,21 @@ Synchronous return: <span class="reportClass" id="syncReturnDoneDiv"></span><br>
 All processing done after: <span class="reportClass" id="fullDoneDiv"></span><br>
 <br>
 <!--
-Amazon Done after: <span class="reportClass" id="AmazonDoneDiv"></span><br>
+YouTube Done after: <span class="reportClass" id="YouTubeDoneDiv"></span><br>
 Bing Done after: <span class="reportClass" id="BingDoneDiv"></span><br>
-CNN Done after: <span class="reportClass" id="CNNDoneDiv"></span><br>
-Economist Done after: <span class="reportClass" id="EconomistDoneDiv"></span><br>
-Facebook Done after: <span class="reportClass" id="FacebookDoneDiv"></span><br>
+GoogleNews Done after: <span class="reportClass" id="GoogleNewsDoneDiv"></span><br>
 GMail Done after: <span class="reportClass" id="GMailDoneDiv"></span><br>
 Google Done after: <span class="reportClass" id="GoogleDoneDiv"></span><br>
-Wikipedia Done after: <span class="reportClass" id="WikipediaDoneDiv"></span><br>
-Yahoo Done after: <span class="reportClass" id="YahooDoneDiv"></span><br>
-Yelp Done after: <span class="reportClass" id="YelpDoneDiv"></span><br>
 <br>
 -->
 
-HTML for Amazon:<br>
-<textarea id="sourceAmazon" rows="24" cols="59">
+HTML for YouTube:<br>
+<textarea id="sourceYouTube" rows="24" cols="59">
 </textarea>
 <br>
 
-<div id="targetAmazon" class="jSanitizeMe" style="overflow: scroll">
-[Amazon]
+<div id="targetYouTube" class="jSanitizeMe" style="overflow: scroll">
+[YouTube]
 </div>
 <br>
 <br>
@@ -244,37 +214,13 @@ HTML for Bing:<br>
 <br>
 
 
-HTML for CNN:<br>
-<textarea id="sourceCNN" rows="24" cols="59">
+HTML for GoogleNews:<br>
+<textarea id="sourceGoogleNews" rows="24" cols="59">
 </textarea>
 <br>
 
-<div id="targetCNN" class="jSanitizeMe" style="overflow: scroll">
-[CNN]
-</div>
-<br>
-<br>
-
-
-HTML for Economist:<br>
-<textarea id="sourceEconomist" rows="24" cols="59">
-</textarea>
-<br>
-
-<div id="targetEconomist" class="jSanitizeMe" style="overflow: scroll">
-[Economist]
-</div>
-<br>
-<br>
-
-
-HTML for Facebook:<br>
-<textarea id="sourceFacebook" rows="24" cols="59">
-</textarea>
-<br>
-
-<div id="targetFacebook" class="jSanitizeMe" style="overflow: scroll">
-[Amazon]
+<div id="targetGoogleNews" class="jSanitizeMe" style="overflow: scroll">
+[GoogleNews]
 </div>
 <br>
 <br>
@@ -303,47 +249,5 @@ HTML for Google:<br>
 <br>
 <br>
 
-
-HTML for Wikipedia:<br>
-<textarea id="sourceWikipedia" rows="24" cols="59">
-</textarea>
-<br>
-
-<div id="targetWikipedia" class="jSanitizeMe" style="overflow: scroll">
-[Wikipedia]
-</div>
-<br>
-<br>
-
-
-HTML for Yahoo:<br>
-<textarea id="sourceYahoo" rows="24" cols="59">
-</textarea>
-<br>
-
-<div id="targetYahoo" class="jSanitizeMe" style="overflow: scroll">
-[Yahoo]
-</div>
-<br>
-<br>
-
-
-HTML for Yelp:<br>
-<textarea id="sourceYelp" rows="24" cols="59">
-</textarea>
-<br>
-
-<div id="targetYelp" class="jSanitizeMe" style="overflow: scroll">
-[Yelp]
-</div>
-<br>
-<br>
-
 </body>
 </html>
-
-br>
-
-</body>
-</html>
-
