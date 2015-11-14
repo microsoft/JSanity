@@ -36,37 +36,37 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
                 'address': 1,
 
                 // Grouping content
-                'p': 1, 
-                'hr': 1, 
+                'p': 1,
+                'hr': 1,
                 'pre': 1,
                 'blockquote': 1,
-                'ol': 1, 
-                'ul': 1, 
+                'ol': 1,
+                'ul': 1,
                 'li': 1,
-                'dl': 1, 
-                'dt': 1, 
-                'dd': 1, 
+                'dl': 1,
+                'dt': 1,
+                'dd': 1,
                 'figure': 1,
                 'figcaption': 1,
-                'div': 1, 
+                'div': 1,
 
                 // Text-level semantics
-                'a': 1, 
-                'em': 1, 
-                'strong': 1, 
+                'a': 1,
+                'em': 1,
+                'strong': 1,
                 'small': 1,
                 's': 1,
-                'cite': 1, 
+                'cite': 1,
                 'q': 1,
                 'dfn': 1,
-                'abbr': 1, 
+                'abbr': 1,
                 'code': 1,
                 'var': 1,
                 'samp': 1,
                 'kbd': 1,
                 'sub': 1, 'sup': 1,
-                'i': 1, 
-                'b': 1, 
+                'i': 1,
+                'b': 1,
                 'u': 1,
                 'mark': 1,
                 'ruby': 1,
@@ -80,10 +80,10 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
 
                 // Edits
                 'ins': 1,
-                'del': 1, 
+                'del': 1,
 
                 // Embedded content
-                'img': 1, 
+                'img': 1,
                 'video': 1,
                 'audio': 1,
                 'source': 1,
@@ -94,14 +94,14 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
 
                 // Tabular data
                 'table': 1,
-                'caption': 1, 
+                'caption': 1,
                 'colgroup': 1,
                 'col': 1,
-                'tbody': 1, 
-                'thead': 1, 
-                'tfoot': 1, 
-                'tr': 1, 
-                'td': 1, 
+                'tbody': 1,
+                'thead': 1,
+                'tfoot': 1,
+                'tr': 1,
+                'td': 1,
                 'th': 1,
 
                 // Forms
@@ -111,7 +111,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
                 'datalist': 1,
                 'optgroup': 1,
                 'option': 1,
-                'textarea': 1, 
+                'textarea': 1,
                 'progress': 1,
                 'meter': 1,
 
@@ -213,10 +213,10 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
             // on*, accesskey, manifest, form, formaction...
 
             // TBD (Possibly unsafe, possibly just unnecessary, ???):
-            // contextmenu [may abuse existing menus on the page?], draggable, dropzone, download, 
+            // contextmenu [may abuse existing menus on the page?], draggable, dropzone, download,
             //  media [different for different elements], ping,
             //  target [We should implement a callback to allow hosts to validate], type, crossorigin,
-            //  type [for source element at minimum, for input element as well, command element?, menu element?], 
+            //  type [for source element at minimum, for input element as well, command element?, menu element?],
             //  accept, autocomplete, autofocus, autosave, formenctype, formmethod, formnovalidate, formtarget,
             //  list, multiple, pattern, required, radiogroup
 
@@ -351,7 +351,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
 
         // Hyperlink properties
         // TBD, will require callback support consistent with target attribute
-       
+
         // Linebox properties
         // TBD
 
@@ -425,7 +425,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
         'direction': 1,
         'letter-spacing': 1,
         'line-height': 1,
-        'text-align': 1, 
+        'text-align': 1,
         'text-decoration': 1,
         'text-indent': 1,
         'text-transform': 1,
@@ -739,7 +739,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
                         // Revert back to the previous namespace
                         ns = oldNS;
                     }
-                    else 
+                    else
                     {
                         if (itemOptions.directModifySource) {
                             nodesToRemove.push(child);
@@ -867,9 +867,6 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
         // Clear the output element
         $(this).empty();
 
-        // Set up the source and destination DOMs
-        srcDoc = document.implementation.createHTMLDocument("sourceDoc");
-
         // Need to update this code to support IE8 properly
         try {
             if (itemOptions.maxWidth !== null) this.style.setProperty("max-width", itemOptions.maxWidth);
@@ -877,6 +874,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
             if (itemOptions.overflow !== null) this.style.setProperty("overflow", itemOptions.overflow);
         } catch (e) { };
 
+        // Set up the destination DOM
         // Currently directModifySource is directly regulated by isolatedTargetDOM
         if (itemOptions.isolatedTargetDOM) {
             itemOptions.directModifySource = false;
@@ -888,12 +886,23 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
             destDoc = document;
         }
 
+        // Set up the source DOM
+        srcDoc = document.implementation.createHTMLDocument("sourceDoc");
+
         // The tree is constructed under a single span element
         // TBD: Potentially unnecessary, consider removing
         iSpan = srcDoc.createElement("span");
         iSpan.innerHTML = itemOptions.inputString;
-
         srcDoc.body.appendChild(iSpan);
+
+        // Detect DOM clobbering, as per https://github.com/Microsoft/JSanity/issues/5
+        if (srcDoc.createTreeWalker !== Document.prototype.createTreeWalker)
+        {
+            // Sanitize an empty source DOM
+            srcDoc = document.implementation.createHTMLDocument("sourceDoc");
+            iSpan = srcDoc.createElement("span");
+            srcDoc.body.appendChild(iSpan);
+        }
 
         // Do an inorder traversal, then build up a document fragment and when it's finished attach it into the doc
         // Nodefilter currently disabled for perf (yes, it makes a difference!)
@@ -922,7 +931,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
                 }
             }
         }
-        
+
         if (promiseArray.length > 0)
             $.when.apply(this, promiseArray).done($.proxy(function () {
                 // Activate tagged link click callbacks
