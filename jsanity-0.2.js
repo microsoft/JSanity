@@ -1,6 +1,6 @@
 "use strict";
-if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please include make sure to include jQuery on this page!");
-(function ($) {
+if (typeof jSanity !== 'undefined') throw ("jSanity was defined.  Please make sure there's no other includes on this page!");
+(function (jSanity) {
 
     // Define the known HTML elements and attributes for various namespaces
     //  TBD: Continue to fill these out
@@ -467,7 +467,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
     // Data to use while walking the tree
     var tw, itemOptions, targetElementID, destDoc, srcDoc;
 
-    var promiseArray = [];
+    var setOnClickArray = [];
 
     function nodeFilter(node) {
         //	if (node.nodeType == node.ELEMENT_NODE) alert("element node!  " + node.tagName);
@@ -672,6 +672,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
                                     cElt.setAttribute("href", "#");
                                 }
                                 cElt.setAttribute("onclick", setOnclick);
+                                setOnClickArray.push(cElt);
                             }
                         }
 
@@ -700,8 +701,10 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
 
                                     try {
                                         // Only modify the property if necessary
-                                        if (itemOptions.directModifySource && modifiedProperty) {
-                                            cElt.style.setProperty(childStyle, output);
+                                        if (itemOptions.directModifySource) {
+                                            if (modifiedProperty) {
+                                                cElt.style.setProperty(childStyle, output);
+                                            }
                                         }
                                         else {
                                             cElt.style.setProperty(childStyle, output);
@@ -788,19 +791,6 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
         tw.currentNode = savedCurrentNode;
     }
 
-    function asyncImport(dfd, destDoc) {
-        var newNode = document.importNode(destDoc.documentElement, true);
-        $.when($.Deferred($.proxy(function (dfd) { setImmediate($.proxy(asyncAppend, this), dfd, this, newNode.lastChild.firstChild); }, this)).promise()).done($.proxy(function () {
-            dfd.resolve();
-        }, this));
-    }
-
-    function asyncAppend(dfd, destElt, cElt) {
-        destElt.appendChild(cElt);
-
-        dfd.resolve();
-    }
-
     // Default sanitization options
     var defaults = {
         inputString: '',		 	    // The string to sanitize and put into the DOM
@@ -853,26 +843,42 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
         debugLevel: 0                       // Debug level > 0 will log dropped elements, attributes, etc. to the console
     };
 
-    function sanitizeMethod(dfd, options) {
-        var spanBuffer, iSpan;
+    function shadowCopy(des) {
+        if (!des) {
+            throw "invalid number of parameters. At least one is expected";
+        }
+
+        var i = 0;
+        var source = null;
+        var output = {};
+
+        for (; i < arguments.length; i++) {
+            source = arguments[i];
+
+            if (source.toString() != "[object Object]") {
+                throw "Invalid type of parameter";
+            }
+
+            for (var key in source) {
+                if (source.hasOwnProperty(key)) {
+                    output[key] = source[key];
+                }
+            }
+        }
+
+        return output;
+    }
+
+    function sanitizeMethod(options) {
+        var spanBuffer, iSpan, output, i, elem, onclickSet;
         /* , newNode; */
 
         // Merge options into a new object
         //  Precedence: Options in element data, options in method call, defaults
-        itemOptions = $.extend({}, defaults, options, $(this).data('jSanity'));
+        itemOptions = shadowCopy({}, defaults, options);
 
         // Basic list of known protocols is hardcoded but extensible via options
-        $.extend(knownProtocols, itemOptions.customProtocols);
-
-        // Clear the output element
-        $(this).empty();
-
-        // Need to update this code to support IE8 properly
-        try {
-            if (itemOptions.maxWidth !== null) this.style.setProperty("max-width", itemOptions.maxWidth);
-            if (itemOptions.maxHeight !== null) this.style.setProperty("max-height", itemOptions.maxHeight);
-            if (itemOptions.overflow !== null) this.style.setProperty("overflow", itemOptions.overflow);
-        } catch (e) { };
+        shadowCopy(knownProtocols, itemOptions.customProtocols);
 
         // Set up the destination DOM
         // Currently directModifySource is directly regulated by isolatedTargetDOM
@@ -892,7 +898,7 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
         // The tree is constructed under a single span element
         // TBD: Potentially unnecessary, consider removing
         iSpan = srcDoc.createElement("span");
-        iSpan.innerHTML = itemOptions.inputString;
+        iSpan.innerHTML = g_useStaticHTML ? window.toStaticHTML(itemOptions.inputString) : itemOptions.inputString;
         srcDoc.body.appendChild(iSpan);
 
         // Detect DOM clobbering, as per https://github.com/Microsoft/JSanity/issues/5
@@ -908,87 +914,49 @@ if (typeof jQuery === 'undefined') throw ("jSanity is a jQuery plugin.  Please i
         // Nodefilter currently disabled for perf (yes, it makes a difference!)
         tw = srcDoc.createTreeWalker(srcDoc.body, NodeFilter.SHOW_ALL, /* nodeFilter */ null, false);
 
-        targetElementID = $(this).attr('id');
+        // targetElementID = $(this).attr('id');
         if (itemOptions.isolatedTargetDOM) {
             treeWalk("default", destDoc.body);
-
-            if (!itemOptions.benchmark) {
-                promiseArray.push($.Deferred($.proxy(function (dfd) { setImmediate($.proxy(asyncImport, this), dfd, destDoc); }, this)).promise());
-            }
+            var newNode = document.importNode(destDoc.documentElement, true);
+            output = newNode.lastChild.firstChild;
         }
         else {
             treeWalk("default", spanBuffer);
-
-            if (!itemOptions.benchmark) {
-                if (itemOptions.directModifySource) {
-                    // this.appendChild(iSpan);
-                    // Async is slightly slower but likely worth it overall
-                    promiseArray.push($.Deferred($.proxy(function (dfd) { setImmediate($.proxy(asyncAppend, this), dfd, this, iSpan); }, this)).promise());
-                }
-                else {
-                    // We could also make this async, but we don't follow this codepath currently
-                    this.appendChild(spanBuffer);
-                }
-            }
+            output = spanBuffer;
         }
 
-        if (promiseArray.length > 0)
-            $.when.apply(this, promiseArray).done($.proxy(function () {
-                // Activate tagged link click callbacks
-                //  Need to do this late, otherwise event handlers get lost when the sanitized DOM is added into the existing page
-                $(this).find('[onclick]').each(function (index) {
-                    if ($(this).attr('onclick') === '/*jSanityClickCallback*/') {
-                        $(this).click(itemOptions.linkClickCallback);
-                    }
-                    else if ($(this).attr('onclick') === '/*jSanityReturnFalseCallback*/') {
-                        $(this).click(function () { return false; });
-                    }
-                });
+        for (i = 0; i < setOnClickArray.length; i++) {
+            elem = setOnClickArray[i];
+            onclickSet = elem.getAttribute("onclick");
 
-                dfd.resolve();
-            }, this));
-        else dfd.resolve();
-
+            if (onclickSet === "/*jSanityClickCallback*/") {
+                elem.onclick = itemOptions.externalContentCallback;
+            } else if (onclickSet === '/*jSanityReturnFalseCallback*/') {
+                elem.onclick = function() { return false; };
+            }
+        }
         // Reset the promise array for the next loop iteration
-        promiseArray = [];
+        setOnClickArray = [];
+
+        return output;
     }
 
-    var methods = {
-        sanitize: function (options) {
-            g_useStaticHTML = false;
+    jSanity.sanitize = function (options) {
+        g_useStaticHTML = false;
 
-            // Validate this is a supported environment
-            //  Todo: How about other browsers?
-            if (typeof document.documentMode !== "undefined") {
-                // IE versions < 10 will not properly isolate markup passed in to document.implementation.createHTMLDocument
-                if (document.documentMode < 9) {
-                    return this.each(function () {
-                        $(this).data('jSanityPromise', $.Deferred().reject('jQuery.jSanity not supported on this user agent.').promise());
-                    });
-                }
-                else
-                if (document.documentMode < 10) {
-                    g_useStaticHTML = true;
-                }
+        // Validate this is a supported environment
+        //  Todo: How about other browsers?
+        if (typeof document.documentMode !== "undefined") {
+            // IE versions < 10 will not properly isolate markup passed in to document.implementation.createHTMLDocument
+            if (document.documentMode < 9) {
+                return null;
             }
-
-            // Sanitization is called once per output element
-            return this.each(function () {
-                $(this).data('jSanityPromise', $.Deferred($.proxy(function (dfd) { setImmediate($.proxy(sanitizeMethod, this), dfd, options); }, this)).promise());
-            });
+            else if (document.documentMode < 10) {
+                g_useStaticHTML = true;
+            }
         }
-    };
 
-    // Method handler
-    $.fn.jSanity = function (method) {
-        if (methods[method]) {
-            return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
-        } else {
-            // $.error('Method ' + method + ' does not exist on jQuery.jSanity');
-            return this.each(function () {
-                $(this).data('jSanityPromise', $.Deferred().reject('Method ' + method + ' does not exist on jQuery.jSanity').promise());
-            });
-        }
-    };
+        return sanitizeMethod(options);
+    }
 
-})(jQuery);
+})(jSanity);
