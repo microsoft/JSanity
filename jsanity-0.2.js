@@ -954,7 +954,7 @@ if (typeof jSanity !== 'undefined') throw ("jSanity was defined.  Please make su
             else if (document.documentMode < 10) {
                 g_useStaticHTML = true;
             }
-        }
+        }  
 
         return sanitizeMethod(options);
     }
