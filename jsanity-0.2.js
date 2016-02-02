@@ -1,5 +1,9 @@
 "use strict";
 if (typeof jSanity !== 'undefined') throw ("jSanity was defined.  Please make sure there's no other includes on this page!");
+
+// Create global namespace
+jSanity = {};
+
 (function (jSanity) {
 
     // Define the known HTML elements and attributes for various namespaces
@@ -954,7 +958,7 @@ if (typeof jSanity !== 'undefined') throw ("jSanity was defined.  Please make su
             else if (document.documentMode < 10) {
                 g_useStaticHTML = true;
             }
-        }  
+        }
 
         return sanitizeMethod(options);
     }
