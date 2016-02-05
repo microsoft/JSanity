@@ -1,261 +1,381 @@
-"use strict";
-if (typeof jSanity !== 'undefined') throw ("jSanity was defined.  Please make sure there's no other includes on this page!");
+if (typeof jSanity !== 'undefined') throw ("jSanity has been defined, please check if there's any duplicate reference.");
 
-// Create global namespace
 jSanity = {};
 
-(function (jSanity) {
+(function(ns) {
+  "use strict";
 
-    // Define the known HTML elements and attributes for various namespaces
-    //  TBD: Continue to fill these out
-    // Attributes are not currently tied to specific elements, so watch out for attributes with different
-    //  meanings depending on the attribute on which they are applied
-    var knownHTML = {
+  var g_useStaticHTML;
+  // Validate this is a supported environment
+  //  Todo: How about other browsers?
+  if (typeof document.documentMode !== "undefined") {
+      // IE versions < 10 will not properly isolate markup passed in to document.implementation.createHTMLDocument
+      if (document.documentMode < 9) {
+          throw "jSanity not supported on this user agent.";
+      }
+      else
+      if (document.documentMode < 10) {
+          g_useStaticHTML = true;
+      }
+  }
 
-        'default':
-        {
-            knownElements:
-            {
-                // Groupings borrowed from https://developer.mozilla.org/en-US/docs/HTML/HTML5/HTML5_element_list
+  var schedulerClass = function () {
+      this.sync = true;
+      this.jobs = [];
+      this.id = schedulerClass.globalId++;
+      this.listnerPosfix = 0;
+      this.onCompletedListners = {};
+      this.onCompletedListners = {};
 
-                // Root element
-                'html': 1,
+      this.useSync = function() {
+          this.sync = true;
+      };
 
-                // Document metadata
-                'style': 1,
+      this.useAsync = function() {
+          this.sync = false;
+      };
 
-                // Scripting
-                'noscript': 1,
+      this.addNewJob = function (fn) {
+          this.jobs.push(fn);
 
-                // Sections
-                'body': 1,
-                'section': 1,
-                'nav': 1,
-                'article': 1,
-                'aside': 1,
-                'h1': 1, 'h2': 1, 'h3': 1, 'h4': 1, 'h5': 1, 'h6': 1,
-                'hgroup': 1,
-                'header': 1,
-                'footer': 1,
-                'address': 1,
+          for (var key in this.onNewJobAddedListners) {
+              if (this.onNewJobAddedListners.hasOwnProperty(key)) {
+                  try {
+                      this.onNewJobAddedListners[key](fn);
+                  }
+                  catch(e) {}
+              }
+          }
+      };
 
-                // Grouping content
-                'p': 1,
-                'hr': 1,
-                'pre': 1,
-                'blockquote': 1,
-                'ol': 1,
-                'ul': 1,
-                'li': 1,
-                'dl': 1,
-                'dt': 1,
-                'dd': 1,
-                'figure': 1,
-                'figcaption': 1,
-                'div': 1,
+      this.registerOnJobCompleted = function (callback) {
+          var handler;
+          this.listnerPosfix += 1;
+          handler = this.id.toString() + this.listnerPosfix.toString();
+          this.onCompletedListners[handler] = callback;
+          return handler;
+      };
 
-                // Text-level semantics
-                'a': 1,
-                'em': 1,
-                'strong': 1,
-                'small': 1,
-                's': 1,
-                'cite': 1,
-                'q': 1,
-                'dfn': 1,
-                'abbr': 1,
-                'code': 1,
-                'var': 1,
-                'samp': 1,
-                'kbd': 1,
-                'sub': 1, 'sup': 1,
-                'i': 1,
-                'b': 1,
-                'u': 1,
-                'mark': 1,
-                'ruby': 1,
-                'rt': 1,
-                'rp': 1,
-                'bdi': 1,
-                'bdo': 1,
-                'span': 1,
-                'br': 1,
-                'wbr': 1,
+      this.registerOnNewJobAdded = function (callback) {
+          var handler;
+          this.listnerPosfix += 1;
+          handler = this.id.toString() + this.listnerPosfix.toString();
+          this.onNewJobAddedListners[handler] = callback;
+          return handler;
+      };
 
-                // Edits
-                'ins': 1,
-                'del': 1,
+      this.unRegisterListner = function (handlerId) {
+          if (this.onCompletedListners[handlerId]) {
+              delete this.onCompletedListners[handlerId];
+          } else if (this.onNewJobAddedListners[handlerId]) {
+              delete this.onNewJobAddedListners[handlerId];
+          }
+      };
 
-                // Embedded content
-                'img': 1,
-                'video': 1,
-                'audio': 1,
-                'source': 1,
-                'map': 1,
-                'area': 1,
-                'svg': 1,
-                'math': 1,
+      this.run = function () {
+          var currJob = null;
 
-                // Tabular data
-                'table': 1,
-                'caption': 1,
-                'colgroup': 1,
-                'col': 1,
-                'tbody': 1,
-                'thead': 1,
-                'tfoot': 1,
-                'tr': 1,
-                'td': 1,
-                'th': 1,
+          do {
+              currJob = this.jobs.pop();
 
-                // Forms
-                'input': 1,
-                'button': 1,
-                'select': 1,
-                'datalist': 1,
-                'optgroup': 1,
-                'option': 1,
-                'textarea': 1,
-                'progress': 1,
-                'meter': 1,
+              if (currJob) {
+                  try {
+                      currJob();
+                  }
+                  catch(e) {}
+              } else {
+                  for (var key in this.onCompletedListners) {
+                      if (this.onCompletedListners.hasOwnProperty(key)) {
+                          try {
+                              this.onCompletedListners[key]();
+                          }
+                          catch(e) {}
+                      }
+                  }
+              }
+          }
+          while (this.sync && currJob);
 
-                // Interactive elements
-                'details': 1,
-                'summary': 1,
-                'command': 1,
-                'menu': 1,
+          if (!this.sync && currJob) {
+              var stepMethod = (function(method, context) {
+                  return function() {
+                      method.apply(context);
+                  }
+              })(this.run, this);
 
-                // Deprecated but supported by jSanity
-                'center': 1,
-                'font': 1,
-            },
+              setTimeout(stepMethod, 0);
+          }
+      };
+  };
+  schedulerClass.globalId = 0;
 
-            // Notable elements explicitly not on this list
-            // form [due to phishing potential], isindex, frame, iframe, script, embed, object, param...
+  var jSanityClass = function(schedulerClass, options) {
+      var sch = new schedulerClass();
 
-            // TBD (Possibly unsafe, possibly just unnecessary, ???):
-            // head, title, base, link, meta, xmlns, version, track, canvas, keygen, output, label, legend, fieldset
+      if (options.onFinishedCallback) {
+        sch.useAsync();
+      } else {
+        sch.useSync();
+      }
 
-            knownAttributes:
-            {
-                // Global attributes borrowed from https://developer.mozilla.org/en-US/docs/HTML/Global_attributes
-                'class': 1,
-                'contenteditable': 1,
-                'dir': 1,
-                'hidden': 1,
-                'id': 1,
-                'lang': 1,
-                'spellcheck': 1,
-                'tabindex': 1,
-                'title': 1,
+      // Define the known HTML elements and attributes for various namespaces
+      //  TBD: Continue to fill these out
+      // Attributes are not currently tied to specific elements, so watch out for attributes with different
+      //  meanings depending on the attribute on which they are applied
+      var knownHTML = {
 
-                // Style element [not supported currently]
-                //  If/when supported, consider adding attributes from https://developer.mozilla.org/en-US/docs/HTML/Element/style
+        'default': {
+          knownElements: {
+            // Groupings borrowed from https://developer.mozilla.org/en-US/docs/HTML/HTML5/HTML5_element_list
 
-                // Attributes in support of various standard elements
-                'cite': 1,
-                'reversed': 1,
-                'start': 1,
-                'value': 1,
-                'href': 1,
-                'hreflang': 1,
-                'rel': 1,
-                'datetime': 1,
-                'alt': 1,
-                'height': 1,
-                'ismap': 1,
-                'src': 1,
-                'width': 1,
-                'usemap': 1,
-                'autoplay': 1,
-                'controls': 1,
-                'loop': 1,
-                'muted': 1,
-                'preload': 1,
-                'coords': 1,
-                'shape': 1,
-                'span': 1,
-                'colspan': 1,
-                'headers': 1,
-                'rowspan': 1,
-                'scope': 1,
-                'checked': 1,
-                'disabled': 1,
-                'max': 1,
-                'maxlength': 1,
-                'min': 1,
-                'name': 1,
-                'placeholder': 1,
-                'readonly': 1,
-                'selectiondirection': 1,
-                'size': 1,
-                'step': 1,
-                'selectedindex': 1,
-                'label': 1,
-                'selected': 1,
-                'cols': 1,
-                'rows': 1,
-                'selectionend': 1,
-                'selectionstart': 1,
-                'wrap': 1,
-                'low': 1,
-                'high': 1,
-                'optimum': 1,
-                'open': 1,
+            // Root element
+            'html': 1,
 
-                // Deprecated but supported by jSanity
-                'align': 1,
-                'face': 1,
-                'hspace': 1,
-                'vspace': 1,
-                'border': 1,
-                'cellpadding': 1,
-                'cellspacing': 1
-            }
+            // Document metadata
+            'style': 1,
 
-            // Explicitly unsafe attributes:
-            // on*, accesskey, manifest, form, formaction...
+            // Scripting
+            'noscript': 1,
 
-            // TBD (Possibly unsafe, possibly just unnecessary, ???):
-            // contextmenu [may abuse existing menus on the page?], draggable, dropzone, download,
-            //  media [different for different elements], ping,
-            //  target [We should implement a callback to allow hosts to validate], type, crossorigin,
-            //  type [for source element at minimum, for input element as well, command element?, menu element?],
-            //  accept, autocomplete, autofocus, autosave, formenctype, formmethod, formnovalidate, formtarget,
-            //  list, multiple, pattern, required, radiogroup
+            // Sections
+            'body': 1,
+            'section': 1,
+            'nav': 1,
+            'article': 1,
+            'aside': 1,
+            'h1': 1,
+            'h2': 1,
+            'h3': 1,
+            'h4': 1,
+            'h5': 1,
+            'h6': 1,
+            'hgroup': 1,
+            'header': 1,
+            'footer': 1,
+            'address': 1,
 
-            // TBD (Add with a callback)
-            // poster [for the video element, add with callback to regulate the supplied URL], icon
+            // Grouping content
+            'p': 1,
+            'hr': 1,
+            'pre': 1,
+            'blockquote': 1,
+            'ol': 1,
+            'ul': 1,
+            'li': 1,
+            'dl': 1,
+            'dt': 1,
+            'dd': 1,
+            'figure': 1,
+            'figcaption': 1,
+            'div': 1,
 
-            // The style attribute is handled separately
+            // Text-level semantics
+            'a': 1,
+            'em': 1,
+            'strong': 1,
+            'small': 1,
+            's': 1,
+            'cite': 1,
+            'q': 1,
+            'dfn': 1,
+            'abbr': 1,
+            'code': 1,
+            'var': 1,
+            'samp': 1,
+            'kbd': 1,
+            'sub': 1,
+            'sup': 1,
+            'i': 1,
+            'b': 1,
+            'u': 1,
+            'mark': 1,
+            'ruby': 1,
+            'rt': 1,
+            'rp': 1,
+            'bdi': 1,
+            'bdo': 1,
+            'span': 1,
+            'br': 1,
+            'wbr': 1,
+
+            // Edits
+            'ins': 1,
+            'del': 1,
+
+            // Embedded content
+            'img': 1,
+            'video': 1,
+            'audio': 1,
+            'source': 1,
+            'map': 1,
+            'area': 1,
+            'svg': 1,
+            'math': 1,
+
+            // Tabular data
+            'table': 1,
+            'caption': 1,
+            'colgroup': 1,
+            'col': 1,
+            'tbody': 1,
+            'thead': 1,
+            'tfoot': 1,
+            'tr': 1,
+            'td': 1,
+            'th': 1,
+
+            // Forms
+            'input': 1,
+            'button': 1,
+            'select': 1,
+            'datalist': 1,
+            'optgroup': 1,
+            'option': 1,
+            'textarea': 1,
+            'progress': 1,
+            'meter': 1,
+
+            // Interactive elements
+            'details': 1,
+            'summary': 1,
+            'command': 1,
+            'menu': 1,
+
+            // Deprecated but supported by jSanity
+            'center': 1,
+            'font': 1,
+          },
+
+          // Notable elements explicitly not on this list
+          // form [due to phishing potential], isindex, frame, iframe, script, embed, object, param...
+
+          // TBD (Possibly unsafe, possibly just unnecessary, ???):
+          // head, title, base, link, meta, xmlns, version, track, canvas, keygen, output, label, legend, fieldset
+
+          knownAttributes: {
+            // Global attributes borrowed from https://developer.mozilla.org/en-US/docs/HTML/Global_attributes
+            'class': 1,
+            'contenteditable': 1,
+            'dir': 1,
+            'hidden': 1,
+            'id': 1,
+            'lang': 1,
+            'spellcheck': 1,
+            'tabindex': 1,
+            'title': 1,
+
+            // Style element [not supported currently]
+            //  If/when supported, consider adding attributes from https://developer.mozilla.org/en-US/docs/HTML/Element/style
+
+            // Attributes in support of various standard elements
+            'cite': 1,
+            'reversed': 1,
+            'start': 1,
+            'value': 1,
+            'href': 1,
+            'hreflang': 1,
+            'rel': 1,
+            'datetime': 1,
+            'alt': 1,
+            'height': 1,
+            'ismap': 1,
+            'src': 1,
+            'width': 1,
+            'usemap': 1,
+            'autoplay': 1,
+            'controls': 1,
+            'loop': 1,
+            'muted': 1,
+            'preload': 1,
+            'coords': 1,
+            'shape': 1,
+            'span': 1,
+            'colspan': 1,
+            'headers': 1,
+            'rowspan': 1,
+            'scope': 1,
+            'checked': 1,
+            'disabled': 1,
+            'max': 1,
+            'maxlength': 1,
+            'min': 1,
+            'name': 1,
+            'placeholder': 1,
+            'readonly': 1,
+            'selectiondirection': 1,
+            'size': 1,
+            'step': 1,
+            'selectedindex': 1,
+            'label': 1,
+            'selected': 1,
+            'cols': 1,
+            'rows': 1,
+            'selectionend': 1,
+            'selectionstart': 1,
+            'wrap': 1,
+            'low': 1,
+            'high': 1,
+            'optimum': 1,
+            'open': 1,
+
+            // Deprecated but supported by jSanity
+            'align': 1,
+            'face': 1,
+            'hspace': 1,
+            'vspace': 1,
+            'border': 1,
+            'cellpadding': 1,
+            'cellspacing': 1
+          }
+
+          // Explicitly unsafe attributes:
+          // on*, accesskey, manifest, form, formaction...
+
+          // TBD (Possibly unsafe, possibly just unnecessary, ???):
+          // contextmenu [may abuse existing menus on the page?], draggable, dropzone, download,
+          //  media [different for different elements], ping,
+          //  target [We should implement a callback to allow hosts to validate], type, crossorigin,
+          //  type [for source element at minimum, for input element as well, command element?, menu element?],
+          //  accept, autocomplete, autofocus, autosave, formenctype, formmethod, formnovalidate, formtarget,
+          //  list, multiple, pattern, required, radiogroup
+
+          // TBD (Add with a callback)
+          // poster [for the video element, add with callback to regulate the supplied URL], icon
+
+          // The style attribute is handled separately
         },
 
         // Attributes on Math, SVG and potentially other elements should be under their respective namespaces
 
         // SVG namespace
         // TBD
-        'http://www.w3.org/2000/svg':
-        {
-            knownElements:
-            {
-                'circle': 1
-            },
+        'http://www.w3.org/2000/svg': {
+          knownElements: {
+            'circle': 1
+          },
 
-            knownAttributes:
-            {
-                'cx': 1, 'cy': 1, 'r': 1, 'stroke': 1, 'stroke-width': 1, 'fill': 1
-            }
+          knownAttributes: {
+            'cx': 1,
+            'cy': 1,
+            'r': 1,
+            'stroke': 1,
+            'stroke-width': 1,
+            'fill': 1
+          }
         }
 
         // Math namespace
         // TBD
-    };
+      };
 
-    var knownProtocols = {
-        'http://': 1, 'https://': 1, 'ftp://': 1, 'mailto:': 1
-    };
+      var knownProtocols = {
+        'http://': 1,
+        'https://': 1,
+        'ftp://': 1,
+        'mailto:': 1
+      };
 
-    var knownCSSProperties = {
+      var knownCSSProperties = {
         // CSS Properties borrowed from http://www.w3schools.com/cssref/default.asp
 
         // Animation properties
@@ -402,7 +522,7 @@ jSanity = {};
         'float': 1,
         'left': 1,
         'overflow': 1,
-        'position': 1,  // The value of position is regulated in code below so as to mitigate overlay attacks
+        'position': 1, // The value of position is regulated in code below so as to mitigate overlay attacks
         'right': 1,
         'top': 1,
         'visibility': 1,
@@ -460,34 +580,100 @@ jSanity = {};
         // background [CSS shorthand property not currently implemented, may not actually be necessary, would require parsing],
         // border-image-* [no current browser support (?)]
         // cursor [supports a URL], text-overflow [may allow overlay attack?]
-    }
+      }
 
-    // Explicitly unsafe CSS properties:
-    // position [position:fixed enables overlay attacks], ...
+      // Default sanitization options
+      var defaults = {
+        inputString: '', // The string to sanitize and put into the DOM
+        maxWidth: '600px', // Recommended to prevent outside UI from being pushed to the right
+        maxHeight: '200px', // Recommended to prevent outside UI from being pushed down
+        overflow: 'hidden', // Recommended to be set set to 'hidden' or 'scroll' so that sanitized content is
+        //  constrained to the target element's box
+        allowLinks: true, // Allow links (applies where user interaction is required, eg: anchors)
+        linkClickCallback: null, // Code that will run in the onclick for any links
+        customProtocols: {}, // Additional protocol schemes to allow through sanitization
+        allowRelativeURLs: false, // Implementation TBD
+        allowAudioVideo: false, // Allow HTML5 AUDIO and VIDEO elements
+        benchmark: false, // Don't actually insert markup into page DOM (for benchmarking)
+        externalContentCallback: // Callback to handle URLs referencing external content
+        // Caller should override this function with a more appropriate one given the hosting scenario
+          function(context, name, data, knownProtocols) {
+          var validatedProtocol;
 
-    // Global flags
-    var g_useStaticHTML;
+          // Allow SRC attributes through by default, block other external references
+          if ((context === "attribute") && (name === "src")) {
+            for (var protocol in knownProtocols) {
+              if (!knownProtocols.hasOwnProperty(protocol)) {
+                continue; // Skip any properties on the prototype
+              }
 
-    // Data to use while walking the tree
-    var tw, itemOptions, targetElementID, destDoc, srcDoc;
+              if (data.substring(0, protocol.length) === protocol) {
+                validatedProtocol = true;
+                break;
+              }
+            }
+          }
 
-    var setOnClickArray = [];
+          if (!validatedProtocol) {
+            // Important to return data in the CSS URL format as necessary, otherwise in directModifySource mode the property won't be overridden
+            if (context === "CSSURL") {
+              data = "url(\"about:blank\")";
+            } else {
+              data = "about:blank";
+            }
+          }
 
-    function nodeFilter(node) {
+          return data;
+        },
+        isolatedTargetDOM: false, // Should have no impact on sanitization in practice, only performance
+        directModifySource: true, // Do not maintain a destination DOM, rather modify the source DOM directly (for perf, requires non-isolated target DOM)
+
+        attributePrefix: 'jSanity', // Prefix NAME and ID attributes with this string
+        //  The ID of the target element is also used in the prefix, if there is one
+        dataAttributeCallback: null, // Callback for handling of data-* attributes which are otherwise unsafe by default
+        debugLevel: 0, // Debug level > 0 will log dropped elements, attributes, etc. to the console
+        onFinishedCallback: null // Callback method with purified DOM tree as parameter, if this property be set, then the sanitize will be a asynchronize call,
+          // Otherwise this will be a synchronize call
+      };
+
+      // Explicitly unsafe CSS properties:
+      // position [position:fixed enables overlay attacks], ...
+      var useStaticHTML = options.useStaticHTML;
+
+      // Data to use while walking the tree
+      var tw, itemOptions, targetElementID, destDoc, srcDoc;
+
+      var setOnClickArray = [];
+
+      function nodeFilter(node) {
         //	if (node.nodeType == node.ELEMENT_NODE) alert("element node!  " + node.tagName);
         //	else if (node.nodeType == node.TEXT_NODE) alert("text node!  " + node.nodeValue);
         //	else alert("unknown node type!");
 
         return NodeFilter.FILTER_ACCEPT;
-    }
+      }
 
-    function consoleLog(level, message) {
+      function consoleLog(level, message) {
         if ((window.console) && (itemOptions.debugLevel >= level)) {
-            console.log("jQuery.jSanity: " + message);
+          console.log("jSanity: " + message);
         }
-    }
+      }
 
-    function treeWalk(ns, destElt) {
+      function createWalkerJob(contextNode, ns, destElt) {
+        return function walkerJob() {
+          var savedCurrentNode = tw.currentNode;
+          tw.currentNode = contextNode;
+          treeWalk(ns, destElt);
+          tw.currentNode = savedCurrentNode;
+        }
+      }
+
+      function scheduleNewWalkerJob(contextNode, ns, destElt) {
+        var job = createWalkerJob(contextNode, ns, destElt);
+        sch.addNewJob(job);
+      }
+
+      function treeWalk(ns, destElt) {
         var savedCurrentNode, cElt, tagN, oldNS, killElt, validatedProtocol, fullPrefix, output, outAttribute, attN;
 
         savedCurrentNode = tw.currentNode;
@@ -496,360 +682,290 @@ jSanity = {};
         var modifiedProperty;
         var childStyle;
 
-        for (var child = tw.firstChild() ; child !== null; child = tw.nextSibling()) {
-            switch (child.nodeType) {
-                case child.ELEMENT_NODE:
-                    // Operate on elements that are known (allow-listed) for the current namespace
-                    tagN = child.tagName.toLowerCase();
-                    if (tagN in knownHTML[ns].knownElements) {
-                        // Preserve the current namespace as it may change for the element we are about to traverse
-                        oldNS = ns;
+        for (var child = tw.firstChild(); child !== null; child = tw.nextSibling()) {
+          switch (child.nodeType) {
+            case child.ELEMENT_NODE:
+              // Operate on elements that are known (allow-listed) for the current namespace
+              tagN = child.tagName.toLowerCase();
+              if (tagN in knownHTML[ns].knownElements) {
+                // Preserve the current namespace as it may change for the element we are about to traverse
+                oldNS = ns;
 
-                        // It may not be explicitly specified in the markup, but SVG elements have their own namespace
-                        if (tagN === "svg") {
-                            ns = "http://www.w3.org/2000/svg";
-                        }
+                // It may not be explicitly specified in the markup, but SVG elements have their own namespace
+                if (tagN === "svg") {
+                  ns = "http://www.w3.org/2000/svg";
+                }
 
-                        // Create a new element appropriately in the destination document
-                        if (!itemOptions.directModifySource) {
-                            if (ns == "default") {
-                                cElt = destDoc.createElement(tagN);
-                            }
-                            else {
-                                cElt = destDoc.createElementNS(ns, tagN);
-                            }
-                        }
-                        else {
-                            cElt = child;
-                        }
+                // Create a new element appropriately in the destination document
+                if (!itemOptions.directModifySource) {
+                  if (ns == "default") {
+                    cElt = destDoc.createElement(tagN);
+                  } else {
+                    cElt = destDoc.createElementNS(ns, tagN);
+                  }
+                } else {
+                  cElt = child;
+                }
 
-                        // Flag to cancel adding this element into the DOM
-                        killElt = false;
+                // Flag to cancel adding this element into the DOM
+                killElt = false;
 
-                        if (!itemOptions.allowAudioVideo && ((tagN === "video") || (tagN === "audio") || (tagN === "source")))
-                        {
-                            killElt = true;
-                        }
+                if (!itemOptions.allowAudioVideo && ((tagN === "video") || (tagN === "audio") || (tagN === "source"))) {
+                  killElt = true;
+                }
 
-                        if (tagN === "style") {
-                            // In directModifySource mode the style element actually makes it through.  For now let's just explicitly kill it.
-                            killElt = true;
+                if (tagN === "style") {
+                  // In directModifySource mode the style element actually makes it through.  For now let's just explicitly kill it.
+                  killElt = true;
 
-                            // if (cElt.sheet !== null) {
-                                // Unfortunately on Chrome and FF, document.implementation.createHTMLDocument does not
-                                //  create CSSStyleSheet objects.  Hopefully this will change in the future.
+                  // if (cElt.sheet !== null) {
+                  // Unfortunately on Chrome and FF, document.implementation.createHTMLDocument does not
+                  //  create CSSStyleSheet objects.  Hopefully this will change in the future.
 
-                                // And in IE, while we can get cElt.sheet.cssRules, it is empty
-                                // This is not a problem if we attempt to pull the stylesheet from the srcDoc as a whole
-                                //  See code at the bottom of the main sanitization loop (outside of the treeWalk)
-                            // }
-                        }
+                  // And in IE, while we can get cElt.sheet.cssRules, it is empty
+                  // This is not a problem if we attempt to pull the stylesheet from the srcDoc as a whole
+                  //  See code at the bottom of the main sanitization loop (outside of the treeWalk)
+                  // }
+                }
 
 
-                        if (!killElt)
-                        {
-                            setOnclick = null;
-                            for (var i = 0; i < child.attributes.length; i++) {
+                if (!killElt) {
+                  setOnclick = null;
+                  for (var i = 0; i < child.attributes.length; i++) {
 
-                                // var tempString1 = tagN + ": ";
-                                // for (var j = 0; j < child.attributes.length; j++) {
-                                //     tempString1 += child.attributes[j].name + ", ";
-                                // }
-                                // alert(tempString1);
+                    // var tempString1 = tagN + ": ";
+                    // for (var j = 0; j < child.attributes.length; j++) {
+                    //     tempString1 += child.attributes[j].name + ", ";
+                    // }
+                    // alert(tempString1);
 
-                                // Handle known attributes
-                                attN = child.attributes[i].name.toLowerCase();
-                                if (attN in knownHTML[ns].knownAttributes) {
-                                    // Link handling
-                                    if (attN === "href") {
-                                        validatedProtocol = false;
-                                        if (itemOptions.allowLinks) {
-                                            for (var protocol in knownProtocols) {
-                                                if (!knownProtocols.hasOwnProperty(protocol)) {
-                                                    continue;  // Skip any properties on the prototype
-                                                }
-
-                                                if (child.attributes[i].value.substring(0, protocol.length) === protocol) {
-                                                    validatedProtocol = true;
-                                                    cElt.setAttribute("href", child.attributes[i].value);
-
-                                                    if (itemOptions.linkClickCallback !== null) {
-                                                        // This link must be re-activated later to pass through to the page DOM
-                                                        setOnclick = "/*jSanityClickCallback*/";
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                        }
-
-                                        if (!validatedProtocol) {
-                                            // Link didn't pass validation, allow the link but make it go nowhere
-
-                                            setOnclick = "/*jSanityReturnFalseCallback*/";
-                                        }
-                                    }
-                                    else if (attN === "class") {
-                                        // Multiple class names can be included in a single attribute, delimited by whitespace
-                                        // We should prefix each class name, but this requires parsing
-                                        // TBD: Implement a callback to allow callers to handle CLASS attributes, or otherwise parse the CLASS
-
-                                        // For now, just disable CLASS attributes
-                                        if (itemOptions.directModifySource) {
-                                            child.removeAttribute(child.attributes[i].name);
-
-                                            // We just removed this attribute so we need to ensure all remaining attributes in the list are still evaluated
-                                            i--;
-                                        }
-                                    }
-                                    else if ((attN === "name") || (attN === "id")) {
-                                        // Prefix NAME and ID attributes
-                                        fullPrefix = itemOptions.attributePrefix + "_";
-
-                                        // All target element should have an identifier to avoid interference between
-                                        //  different chunks of sanitized output.  We pick up the ID to of the target element
-                                        //  to use here as a prefix for all NAME/ID attributes in sanitized elements
-                                        if (typeof targetElementID !== "undefined") {
-                                            fullPrefix += targetElementID + "_";
-                                        }
-
-                                        if (child.attributes[i].value.length > 0) {
-                                            if ((child.attributes[i].value.length > fullPrefix.length) && (child.attributes[i].value.substring(0, fullPrefix.length) === fullPrefix)) {
-                                                // Preserve idempotence -- don't re-prefix if prefixes match exactly
-                                                cElt.setAttribute(child.attributes[i].name, child.attributes[i].value);
-                                            }
-                                            else {
-                                                cElt.setAttribute(child.attributes[i].name, fullPrefix + child.attributes[i].value);
-                                            }
-                                        }
-                                    }
-                                    else if (attN === "src") {
-                                        output = child.attributes[i].value;
-                                        // Deal with external content referenced by the SRC attribute
-                                        if (itemOptions.externalContentCallback !== null) {
-                                            output = itemOptions.externalContentCallback("attribute", "src", output, knownProtocols);
-                                        }
-
-                                        if (output !== null) {
-                                            cElt.setAttribute("src", output);
-                                        }
-                                        else {
-                                            // Just abort and drop the entire element
-                                            killElt = true;
-                                            break;
-                                        }
-                                    }
-                                    else {
-                                        // Default action for known attributes
-                                        cElt.setAttribute(child.attributes[i].name, child.attributes[i].value);
-                                    }
-                                }
-                                else if ((itemOptions.dataAttributeCallback !== null) && (attN.substring(0, 5) === "data-")) {
-                                    // data-* attributes aren't allowed by default, but may be supported via a custom callback
-
-                                    // Callback accepts the attribute name/value and returns the value to use, or null to kill this attribute
-                                    outAttribute = itemOptions.dataAttributeCallback(child.attributes[i].name, child.attributes[i].value);
-                                    if (outAttribute !== null) {
-                                        try {
-                                            cElt.setAttribute(child.attributes[i].name, outAttribute);
-                                        } catch (e) {
-                                            consoleLog(0, 'Unable to set CSS attribute: ' + child.attributes[i].name + ' to ' + outAttribute);
-                                        };
-                                    }
-                                }
-                                else {
-                                    if (itemOptions.directModifySource) {
-                                        if (attN !== "style") {
-                                            child.removeAttribute(child.attributes[i].name);
-
-                                            // We just removed this attribute so we need to ensure all remaining attributes in the list are still evaluated
-                                            i--;
-                                        }
-                                    }
-
-                                    consoleLog(1, 'Encountered unsupported attribute: ' + attN);
-                                }
+                    // Handle known attributes
+                    attN = child.attributes[i].name.toLowerCase();
+                    if (attN in knownHTML[ns].knownAttributes) {
+                      // Link handling
+                      if (attN === "href") {
+                        validatedProtocol = false;
+                        if (itemOptions.allowLinks) {
+                          for (var protocol in knownProtocols) {
+                            if (!knownProtocols.hasOwnProperty(protocol)) {
+                              continue; // Skip any properties on the prototype
                             }
 
-                            // Do this late so that we don't affect the loop.  (Issue observed in directModifySource mode.)
-                            if (setOnclick) {
-                                if (setOnclick === "/*jSanityReturnFalseCallback*/") {
-                                    cElt.setAttribute("href", "#");
-                                }
-                                cElt.setAttribute("onclick", setOnclick);
-                                setOnClickArray.push(cElt);
+                            if (child.attributes[i].value.substring(0, protocol.length) === protocol) {
+                              validatedProtocol = true;
+                              cElt.setAttribute("href", child.attributes[i].value);
+
+                              if (itemOptions.linkClickCallback !== null) {
+                                // This link must be re-activated later to pass through to the page DOM
+                                setOnclick = "/*jSanityClickCallback*/";
+                              }
+                              break;
                             }
+                          }
                         }
 
-                        if (!killElt && child.style)
-                        {
-                            // Apply CSS properties from the style attribute
-                            for (var i = 0; i < child.style.length; i++) {
-                                childStyle = child.style[i];
-                                if (childStyle in knownCSSProperties) {
-                                    modifiedProperty = false;
-                                    output = child.style.getPropertyValue(childStyle);
+                        if (!validatedProtocol) {
+                          // Link didn't pass validation, allow the link but make it go nowhere
 
-                                    if (output.substring(0, 4) === "url(") {
-                                        // Deal with external content
-                                        if (itemOptions.externalContentCallback !== null) {
-                                            output = itemOptions.externalContentCallback("CSSURL", childStyle, output, knownProtocols);
-                                            modifiedProperty = true;
-                                        }
-                                    }
-
-                                    // Fixed and absolute positioning allow overlay attacks
-                                    if ((childStyle === "position") && (output !== "static") && (output !== "relative") && (output !== "inherit")) {
-                                        output = "inherit";
-                                        modifiedProperty = true;
-                                    }
-
-                                    try {
-                                        // Only modify the property if necessary
-                                        if (itemOptions.directModifySource) {
-                                            if (modifiedProperty) {
-                                                cElt.style.setProperty(childStyle, output);
-                                            }
-                                        }
-                                        else {
-                                            cElt.style.setProperty(childStyle, output);
-                                        }
-                                    }
-                                    catch (e) {
-                                        consoleLog(0, 'Unable to set CSS property: ' + childStyle);
-                                    }
-                                }
-                                else {
-                                    if (itemOptions.directModifySource) {
-                                        cElt.style.setProperty(childStyle, null);
-                                    }
-
-                                    consoleLog(1, 'Encountered unsupported style property: ' + childStyle);
-                                }
-                            }
+                          setOnclick = "/*jSanityReturnFalseCallback*/";
                         }
+                      } else if (attN === "class") {
+                        // Multiple class names can be included in a single attribute, delimited by whitespace
+                        // We should prefix each class name, but this requires parsing
+                        // TBD: Implement a callback to allow callers to handle CLASS attributes, or otherwise parse the CLASS
 
-                        // Element fully constructed, attach it to the DOM being constructed
-                        if (!killElt) {
-                            if (!itemOptions.directModifySource) {
-                                destElt.appendChild(cElt);
-                            }
-                        }
-                        else if (itemOptions.directModifySource) {
-                            nodesToRemove.push(child);
-                        }
-
-                        // Traverse the source DOM below the current element, unless we are killing the element
-                        if (!killElt) {
-                            treeWalk(ns, cElt);
-                        }
-
-                        // Revert back to the previous namespace
-                        ns = oldNS;
-                    }
-                    else
-                    {
+                        // For now, just disable CLASS attributes
                         if (itemOptions.directModifySource) {
-                            nodesToRemove.push(child);
+                          child.removeAttribute(child.attributes[i].name);
+
+                          // We just removed this attribute so we need to ensure all remaining attributes in the list are still evaluated
+                          i--;
+                        }
+                      } else if ((attN === "name") || (attN === "id")) {
+                        // Prefix NAME and ID attributes
+                        fullPrefix = itemOptions.attributePrefix + "_";
+
+                        // All target element should have an identifier to avoid interference between
+                        //  different chunks of sanitized output.  We pick up the ID to of the target element
+                        //  to use here as a prefix for all NAME/ID attributes in sanitized elements
+                        if (typeof targetElementID !== "undefined") {
+                          fullPrefix += targetElementID + "_";
                         }
 
-                        consoleLog(1, 'Encountered unsupported element: ' + tagN);
+                        if (child.attributes[i].value.length > 0) {
+                          if ((child.attributes[i].value.length > fullPrefix.length) && (child.attributes[i].value.substring(0, fullPrefix.length) === fullPrefix)) {
+                            // Preserve idempotence -- don't re-prefix if prefixes match exactly
+                            cElt.setAttribute(child.attributes[i].name, child.attributes[i].value);
+                          } else {
+                            cElt.setAttribute(child.attributes[i].name, fullPrefix + child.attributes[i].value);
+                          }
+                        }
+                      } else if (attN === "src") {
+                        output = child.attributes[i].value;
+                        // Deal with external content referenced by the SRC attribute
+                        if (itemOptions.externalContentCallback !== null) {
+                          output = itemOptions.externalContentCallback("attribute", "src", output, knownProtocols);
+                        }
+
+                        if (output !== null) {
+                          cElt.setAttribute("src", output);
+                        } else {
+                          // Just abort and drop the entire element
+                          killElt = true;
+                          break;
+                        }
+                      } else {
+                        // Default action for known attributes
+                        cElt.setAttribute(child.attributes[i].name, child.attributes[i].value);
+                      }
+                    } else if ((itemOptions.dataAttributeCallback !== null) && (attN.substring(0, 5) === "data-")) {
+                      // data-* attributes aren't allowed by default, but may be supported via a custom callback
+
+                      // Callback accepts the attribute name/value and returns the value to use, or null to kill this attribute
+                      outAttribute = itemOptions.dataAttributeCallback(child.attributes[i].name, child.attributes[i].value);
+                      if (outAttribute !== null) {
+                        try {
+                          cElt.setAttribute(child.attributes[i].name, outAttribute);
+                        } catch (e) {
+                          consoleLog(0, 'Unable to set CSS attribute: ' + child.attributes[i].name + ' to ' + outAttribute);
+                        };
+                      }
+                    } else {
+                      if (itemOptions.directModifySource) {
+                        if (attN !== "style") {
+                          child.removeAttribute(child.attributes[i].name);
+
+                          // We just removed this attribute so we need to ensure all remaining attributes in the list are still evaluated
+                          i--;
+                        }
+                      }
+
+                      consoleLog(1, 'Encountered unsupported attribute: ' + attN);
                     }
-                    break;
+                  }
 
-                case child.TEXT_NODE:
-                    // Allow text nodes through
-
-                    if (!itemOptions.directModifySource) {
-                        cElt = destDoc.createTextNode(child.nodeValue);
-
-                        destElt.appendChild(cElt);
+                  // Do this late so that we don't affect the loop.  (Issue observed in directModifySource mode.)
+                  if (setOnclick) {
+                    if (setOnclick === "/*jSanityReturnFalseCallback*/") {
+                      cElt.setAttribute("href", "#");
                     }
-                    break;
+                    cElt.setAttribute("onclick", setOnclick);
+                    setOnClickArray.push(cElt);
+                  }
+                }
 
-                case child.COMMENT_NODE:
-                    // removeNode() on IE somehow doesn't let comments be removed, so OK, let them pass
-                    break;
+                if (!killElt && child.style) {
+                  // Apply CSS properties from the style attribute
+                  for (var i = 0; i < child.style.length; i++) {
+                    childStyle = child.style[i];
+                    if (childStyle in knownCSSProperties) {
+                      modifiedProperty = false;
+                      output = child.style.getPropertyValue(childStyle);
 
-                default:
-                    if (itemOptions.directModifySource) {
-                        nodesToRemove.push(child);
+                      if (output.substring(0, 4) === "url(") {
+                        // Deal with external content
+                        if (itemOptions.externalContentCallback !== null) {
+                          output = itemOptions.externalContentCallback("CSSURL", childStyle, output, knownProtocols);
+                          modifiedProperty = true;
+                        }
+                      }
+
+                      // Fixed and absolute positioning allow overlay attacks
+                      if ((childStyle === "position") && (output !== "static") && (output !== "relative") && (output !== "inherit")) {
+                        output = "inherit";
+                        modifiedProperty = true;
+                      }
+
+                      try {
+                        // Only modify the property if necessary
+                        if (itemOptions.directModifySource) {
+                          if (modifiedProperty) {
+                            cElt.style.setProperty(childStyle, output);
+                          }
+                        } else {
+                          cElt.style.setProperty(childStyle, output);
+                        }
+                      } catch (e) {
+                        consoleLog(0, 'Unable to set CSS property: ' + childStyle);
+                      }
+                    } else {
+                      if (itemOptions.directModifySource) {
+                        cElt.style.setProperty(childStyle, null);
+                      }
+
+                      consoleLog(1, 'Encountered unsupported style property: ' + childStyle);
                     }
+                  }
+                }
 
-                    // Throwing a hard error here is a bit too draconian
-                    consoleLog(1, 'Unknown node type: ' + child.nodeType);
-            }
+                // Element fully constructed, attach it to the DOM being constructed
+                if (!killElt) {
+                  if (!itemOptions.directModifySource) {
+                    destElt.appendChild(cElt);
+                  }
+                } else if (itemOptions.directModifySource) {
+                  nodesToRemove.push(child);
+                }
+
+                // Traverse the source DOM below the current element, unless we are killing the element
+                if (!killElt) {
+                  scheduleNewWalkerJob(child, ns, cElt);
+                  //treeWalk(ns, cElt);
+                }
+
+                // Revert back to the previous namespace
+                ns = oldNS;
+              } else {
+                if (itemOptions.directModifySource) {
+                  nodesToRemove.push(child);
+                }
+
+                consoleLog(1, 'Encountered unsupported element: ' + tagN);
+              }
+              break;
+
+            case child.TEXT_NODE:
+              // Allow text nodes through
+
+              if (!itemOptions.directModifySource) {
+                cElt = destDoc.createTextNode(child.nodeValue);
+
+                destElt.appendChild(cElt);
+              }
+              break;
+
+            case child.COMMENT_NODE:
+              // removeNode() on IE somehow doesn't let comments be removed, so OK, let them pass
+              break;
+
+            default:
+              if (itemOptions.directModifySource) {
+                nodesToRemove.push(child);
+              }
+
+              // Throwing a hard error here is a bit too draconian
+              consoleLog(1, 'Unknown node type: ' + child.nodeType);
+          }
         }
 
         // Remove nodes after we're all done because otherwise we remove the node being operated upon, screwing up the node iteration
         for (i = 0; i < nodesToRemove.length; i++) {
-            // Need to avoid DOM squatting, eg: test<form><input name=parentNode>  (Credit: Gareth Heyes)
-            // Use removeNode() on IE and remove() elsewhere
-            //  removeNode() doesn't exist on Chrome, remove() doesn't exist on IE
-            try {
-                nodesToRemove[i].removeNode(true);
-            } catch (e) {
-                nodesToRemove[i].remove();
-            }
+          // Need to avoid DOM squatting, eg: test<form><input name=parentNode>  (Credit: Gareth Heyes)
+          // Use removeNode() on IE and remove() elsewhere
+          //  removeNode() doesn't exist on Chrome, remove() doesn't exist on IE
+          try {
+            nodesToRemove[i].removeNode(true);
+          } catch (e) {
+            nodesToRemove[i].remove();
+          }
         }
 
         tw.currentNode = savedCurrentNode;
-    }
+      }
 
-    // Default sanitization options
-    var defaults = {
-        inputString: '',		 	    // The string to sanitize and put into the DOM
-        maxWidth: '600px',			    // Recommended to prevent outside UI from being pushed to the right
-        maxHeight: '200px',			    // Recommended to prevent outside UI from being pushed down
-        overflow: 'hidden',			    // Recommended to be set set to 'hidden' or 'scroll' so that sanitized content is
-                                        //  constrained to the target element's box
-        allowLinks: true,          		// Allow links (applies where user interaction is required, eg: anchors)
-        linkClickCallback: null,     	// Code that will run in the onclick for any links
-        customProtocols: {},       		// Additional protocol schemes to allow through sanitization
-        allowRelativeURLs: false,  		// Implementation TBD
-        allowAudioVideo: false,			// Allow HTML5 AUDIO and VIDEO elements
-        benchmark: false,               // Don't actually insert markup into page DOM (for benchmarking)
-        externalContentCallback: 		// Callback to handle URLs referencing external content
-                                        // Caller should override this function with a more appropriate one given the hosting scenario
-            function (context, name, data, knownProtocols) {
-                var validatedProtocol;
-
-                // Allow SRC attributes through by default, block other external references
-                if ((context === "attribute") && (name === "src")) {
-                    for (var protocol in knownProtocols) {
-                        if (!knownProtocols.hasOwnProperty(protocol)) {
-                            continue;  // Skip any properties on the prototype
-                        }
-
-                        if (data.substring(0, protocol.length) === protocol) {
-                            validatedProtocol = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!validatedProtocol) {
-                    // Important to return data in the CSS URL format as necessary, otherwise in directModifySource mode the property won't be overridden
-                    if (context === "CSSURL") {
-                        data = "url(\"about:blank\")";
-                    } else {
-                        data = "about:blank";
-                    }
-                }
-
-                return data;
-            },
-        isolatedTargetDOM: false,   		 // Should have no impact on sanitization in practice, only performance
-        directModifySource: true,            // Do not maintain a destination DOM, rather modify the source DOM directly (for perf, requires non-isolated target DOM)
-
-        attributePrefix: 'jSanity', 		// Prefix NAME and ID attributes with this string
-        //  The ID of the target element is also used in the prefix, if there is one
-        dataAttributeCallback: null,		// Callback for handling of data-* attributes which are otherwise unsafe by default
-        debugLevel: 0                       // Debug level > 0 will log dropped elements, attributes, etc. to the console
-    };
-
-    function shadowCopy(des) {
+      function shadowCopy(des) {
         if (!des) {
-            throw "invalid number of parameters. At least one is expected";
+          throw "invalid number of parameters. At least one is expected";
         }
 
         var i = 0;
@@ -857,23 +973,23 @@ jSanity = {};
         var output = {};
 
         for (; i < arguments.length; i++) {
-            source = arguments[i];
+          source = arguments[i];
 
-            if (source.toString() != "[object Object]") {
-                throw "Invalid type of parameter";
-            }
+          if (source.toString() != "[object Object]") {
+            throw "Invalid type of parameter";
+          }
 
-            for (var key in source) {
-                if (source.hasOwnProperty(key)) {
-                    output[key] = source[key];
-                }
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              output[key] = source[key];
             }
+          }
         }
 
         return output;
-    }
+      }
 
-    function sanitizeMethod(options) {
+      this.sanitizeMethod = function sanitizeMethod(options) {
         var spanBuffer, iSpan, output, i, elem, onclickSet;
         /* , newNode; */
 
@@ -887,13 +1003,12 @@ jSanity = {};
         // Set up the destination DOM
         // Currently directModifySource is directly regulated by isolatedTargetDOM
         if (itemOptions.isolatedTargetDOM) {
-            itemOptions.directModifySource = false;
-            destDoc = document.implementation.createHTMLDocument("destDoc");
-        }
-        else {
-            itemOptions.directModifySource = true;
-            spanBuffer = document.createElement("span");
-            destDoc = document;
+          itemOptions.directModifySource = false;
+          destDoc = document.implementation.createHTMLDocument("destDoc");
+        } else {
+          itemOptions.directModifySource = true;
+          spanBuffer = document.createElement("span");
+          destDoc = document;
         }
 
         // Set up the source DOM
@@ -902,16 +1017,15 @@ jSanity = {};
         // The tree is constructed under a single span element
         // TBD: Potentially unnecessary, consider removing
         iSpan = srcDoc.createElement("span");
-        iSpan.innerHTML = g_useStaticHTML ? window.toStaticHTML(itemOptions.inputString) : itemOptions.inputString;
+        iSpan.innerHTML = useStaticHTML ? window.toStaticHTML(itemOptions.inputString) : itemOptions.inputString;
         srcDoc.body.appendChild(iSpan);
 
         // Detect DOM clobbering, as per https://github.com/Microsoft/JSanity/issues/5
-        if (srcDoc.createTreeWalker !== Document.prototype.createTreeWalker)
-        {
-            // Sanitize an empty source DOM
-            srcDoc = document.implementation.createHTMLDocument("sourceDoc");
-            iSpan = srcDoc.createElement("span");
-            srcDoc.body.appendChild(iSpan);
+        if (srcDoc.createTreeWalker !== Document.prototype.createTreeWalker) {
+          // Sanitize an empty source DOM
+          srcDoc = document.implementation.createHTMLDocument("sourceDoc");
+          iSpan = srcDoc.createElement("span");
+          srcDoc.body.appendChild(iSpan);
         }
 
         // Do an inorder traversal, then build up a document fragment and when it's finished attach it into the doc
@@ -919,48 +1033,55 @@ jSanity = {};
         tw = srcDoc.createTreeWalker(srcDoc.body, NodeFilter.SHOW_ALL, /* nodeFilter */ null, false);
 
         // targetElementID = $(this).attr('id');
-        if (itemOptions.isolatedTargetDOM) {
-            treeWalk("default", destDoc.body);
+        scheduleNewWalkerJob(tw.currentNode, "default", itemOptions.isolatedTargetDOM ? destDoc.body : spanBuffer);
+
+        var hdler = sch.registerOnJobCompleted(function() {
+          if (itemOptions.isolatedTargetDOM) {
             var newNode = document.importNode(destDoc.documentElement, true);
             output = newNode.lastChild.firstChild;
-        }
-        else {
-            treeWalk("default", spanBuffer);
-            output = spanBuffer;
-        }
+          } else {
+            if (itemOptions.directModifySource) {
+              output = iSpan;
+            } else {
+              output = spanBuffer;
+            }
+          }
 
-        for (i = 0; i < setOnClickArray.length; i++) {
+          for (i = 0; i < setOnClickArray.length; i++) {
             elem = setOnClickArray[i];
             onclickSet = elem.getAttribute("onclick");
 
             if (onclickSet === "/*jSanityClickCallback*/") {
-                elem.onclick = itemOptions.externalContentCallback;
+              elem.onclick = itemOptions.externalContentCallback;
             } else if (onclickSet === '/*jSanityReturnFalseCallback*/') {
-                elem.onclick = function() { return false; };
+              elem.onclick = function() {
+                return false;
+              };
             }
-        }
-        // Reset the promise array for the next loop iteration
-        setOnClickArray = [];
+          }
+
+          // Reset the promise array for the next loop iteration
+          setOnClickArray = [];
+          sch.unRegisterListner(hdler);
+
+          if (itemOptions.onFinishedCallback) {
+            itemOptions.onFinishedCallback(output);
+          }
+        });
+
+        sch.run();
 
         return output;
-    }
+      }
+  }
 
-    jSanity.sanitize = function (options) {
-        g_useStaticHTML = false;
+  // public method expose to external as jSanity.sanitize()
+  ns.sanitize = function(options) {
+    var sanitizer;
 
-        // Validate this is a supported environment
-        //  Todo: How about other browsers?
-        if (typeof document.documentMode !== "undefined") {
-            // IE versions < 10 will not properly isolate markup passed in to document.implementation.createHTMLDocument
-            if (document.documentMode < 9) {
-                return null;
-            }
-            else if (document.documentMode < 10) {
-                g_useStaticHTML = true;
-            }
-        }
+    options.useStaticHTML = g_useStaticHTML;
+    sanitizer = new jSanityClass(schedulerClass, options);
 
-        return sanitizeMethod(options);
-    }
-
+    return sanitizer.sanitizeMethod(options);
+  }
 })(jSanity);
