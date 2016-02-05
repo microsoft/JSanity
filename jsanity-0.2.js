@@ -74,6 +74,9 @@ jSanity = {};
 
       this.run = function () {
           var currJob = null;
+          var conti = this.sync;
+          var start, end;
+          start = new Date().getTime();
 
           do {
               currJob = this.jobs.pop();
@@ -93,8 +96,18 @@ jSanity = {};
                       }
                   }
               }
+
+              end = new Date().getTime();
+
+              if (currJob && !this.sync) {
+                  if ((end - start) < schedulerClass.maxExecutionTimeForMergedAsyncJobs) {
+                      conti = true;
+                  } else {
+                      conti = false;
+                  }
+              }
           }
-          while (this.sync && currJob);
+          while (conti && currJob);
 
           if (!this.sync && currJob) {
               var stepMethod = (function(method, context) {
@@ -108,6 +121,7 @@ jSanity = {};
       };
   };
   schedulerClass.globalId = 0;
+  schedulerClass.maxExecutionTimeForMergedAsyncJobs = 15;
 
   var jSanityClass = function(schedulerClass, options) {
       var sch = new schedulerClass();
@@ -1077,7 +1091,7 @@ jSanity = {};
 
   // public method expose to external as jSanity.sanitize()
   ns.sanitize = function(options) {
-    var sanitizer;
+    var sanitizer = null;
 
     options.useStaticHTML = g_useStaticHTML;
     sanitizer = new jSanityClass(schedulerClass, options);
