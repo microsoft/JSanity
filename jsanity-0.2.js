@@ -64,7 +64,7 @@ jSanity = {};
         this.id = schedulerClass.globalId++;
         this.listnerPosfix = 0;
         this.onCompletedListners = {};
-        this.onCompletedListners = {};
+        this.onNewJobAddedListners = {};
 
         this.useSync = function () {
             this.sync = true;
