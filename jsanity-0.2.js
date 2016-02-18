@@ -1056,6 +1056,8 @@ jSanity = {};
                 }
 
                 try {
+                    output.style.setProperty("display", "inline-block");
+                    
                     if ( itemOptions.maxWidth ) {
                         output.style.setProperty( "max-width", itemOptions.maxWidth );
                     }
