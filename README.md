@@ -7,18 +7,15 @@ Reference:<br>
 
 ## Status
 
-jSanity was just recently revived from two years of cold storage.  Only very minimal changes have been made so far since the code was originally developed.
+2/18/2016: [@kh9n](https://twitter.com/kh9n) has completed a significant refactoring
+  - jQuery and setImmediate dependencies were removed!
+  - jSanity now supports both sync and async modes
 
 
 ## Demo / Benchmark pages
 
 [Demo](http://jsanity.azurewebsites.net/jsanity-demo-pretty.htm)<br>
 [Benchmark](http://jsanity.azurewebsites.net/jsanity-benchmark-pretty.htm)
-
-## Latest news
-  - 2/18/2016: [@kh9n](https://twitter.com/kh9n) has completed a significant refactoring
-    - jQuery and setImmediate dependencies were removed!
-    - jSanity now supports both sync and async modes
 
 
 ## Todo
