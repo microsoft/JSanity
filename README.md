@@ -22,6 +22,7 @@ jSanity was just recently revived from two years of cold storage.  Only very min
 
 
 ## Todo
+  - Handle open issues (DOM clobbering bugs in particular)
   - Support for more elements and attributes
   - Update / document the demo & benchmark pages
   - Unit tests
