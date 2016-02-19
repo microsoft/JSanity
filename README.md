@@ -8,9 +8,9 @@ Reference:<br>
 ## Status
 
 2/18/2016: [@kh9n](https://twitter.com/kh9n) has completed a significant refactoring.
-  - Version rev'd to 0.3.
   - jQuery and setImmediate dependencies were removed!
   - jSanity now supports both sync and async modes.
+  - Version rev'd to 0.3.
 
 
 ## Demo / Benchmark pages
