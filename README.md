@@ -15,18 +15,21 @@ jSanity was just recently revived from two years of cold storage.  Only very min
 [Demo](http://jsanity.azurewebsites.net/jsanity-demo-pretty.htm)<br>
 [Benchmark](http://jsanity.azurewebsites.net/jsanity-benchmark-pretty.htm)
 
+## Latest news
+  - 2/18/2016: [@kh9n](https://twitter.com/kh9n) has completed a significant refactoring
+    - jQuery and setImmediate dependencies were removed!
+    - jSanity now supports both sync and async modes
+
 
 ## Todo
-  - Support for more elements and attributes.
-  - setImmediate didn't gain traction.  Switch to an alternative approach.
-    - For now jSanity uses a polyfill.
+  - Support for more elements and attributes
   - Update / document the demo & benchmark pages
   - Unit tests
-  - Remove requirement for jQuery (?)
   - Better solution for STYLE elements
   - Integration with one or more javascript frameworks
   - Experimental override for default sanitization in various web platforms
   - Leverage newer features of the web platform (Shadow DOM, etc.)
+  - Fix linkClickCallback support
 
 
 ## Special thanks for making jSanity a reality:
