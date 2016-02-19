@@ -7,7 +7,10 @@ Reference:<br>
 
 ## Status
 
-jSanity was just recently revived from two years of cold storage.  Only very minimal changes have been made so far since the code was originally developed.
+2/18/2016: [@kh9n](https://twitter.com/kh9n) has completed a significant refactoring.
+  - jQuery and setImmediate dependencies were removed!
+  - jSanity now supports both sync and async modes.
+  - Version rev'd to 0.3.
 
 
 ## Demo / Benchmark pages
@@ -17,16 +20,16 @@ jSanity was just recently revived from two years of cold storage.  Only very min
 
 
 ## Todo
-  - Support for more elements and attributes.
-  - setImmediate didn't gain traction.  Switch to an alternative approach.
-    - For now jSanity uses a polyfill.
+  - Handle open issues (DOM clobbering bugs in particular)
+  - Support for more elements and attributes
   - Update / document the demo & benchmark pages
   - Unit tests
-  - Remove requirement for jQuery (?)
   - Better solution for STYLE elements
   - Integration with one or more javascript frameworks
   - Experimental override for default sanitization in various web platforms
   - Leverage newer features of the web platform (Shadow DOM, etc.)
+  - Fix linkClickCallback support
+  - Remove jQuery usage from demo / benchmark pages
 
 
 ## Special thanks for making jSanity a reality:

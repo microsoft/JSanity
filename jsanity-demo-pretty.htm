@@ -4,10 +4,7 @@
   <title>jSanity Demo</title>
   <meta http-equiv="X-UA-Compatible" content="IE=10" >
 <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.js"></script>
-<!-- Temporary setImmediate Polyfill for browsers without setImmediate, include as necessary -->
-<!-- Use https://github.com/YuzuJS/setImmediate/blob/master/setImmediate.js -->
-<script type="text/javascript" src="setImmediate.js"></script>
-<script type="text/javascript" src="jsanity-0.2.js"></script>
+<script type="text/javascript" src="jsanity-0.3.js"></script>
 </head>
 <body>
 
@@ -22,7 +19,6 @@ $(document).ready(function() {
         $("#badHtmlCircle").val("<b style=\"color:red;position:fixed;top:0;left:0;font-family:Arial,Helvetica,sans-serif;\">\r\n\r\nzzzzz<textarea>zzzz</textarea>\r\n\r\n<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"><circle cx=\"100\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"2\" fill=\"red\"/>\r\n</svg>\r\n\r\n</b>");
 
 	$("#badHtmlSpan").val("<a href=\"http://www.microsoft.com\">\r\nlink to Microsoft\r\n</a><br>\r\n\r\n<a href=\"javascript:alert();\">\r\njavascript link\r\n</a><br>\r\n\r\n<a href=\"asdf.htm\">\r\nrelative link\r\n</a>");
-
 });
 
 function nosani1()
@@ -31,48 +27,27 @@ function nosani1()
 }
 
 function sani1(isoDOM)
-{
-	// Specify options on the markup
-        // Options here take precedence over and override options specified in the method call (and default options)
-	// $('#targetDiv').data('jSanity', { inputString: $("#badHtmlDiv").val(), overflow: 'scroll', allowLinks: true, dataAttributeCallback: function(name, value) { return "new value"; }, externalContentCallback: function(context, name, data, knownProtocols) { if (context === "CSSURL") { return "url(http://i.microsoft.com/global/ImageStore/PublishingImages/logos/ms-mark/microsoft_logo_87x15.png)" } else return "http://i.microsoft.com/global/ImageStore/PublishingImages/logos/ms-mark/microsoft_logo_87x15.png"; } });
-	$('#targetDiv').data('jSanity', { inputString: $("#badHtmlDiv").val(), overflow: 'scroll', allowLinks: true });
-
-	// Call the sanitize method across all selected elements
-        // Options here take precedence over and override default values (but not options attached to markup)
-	$(".jSanitizeMe1").jSanity('sanitize', { allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 } });
+{	
+	$('#targetDiv').empty();
+	$('#targetDiv').append(jSanity.sanitize({inputString: $("#badHtmlDiv").val(), overflow: 'scroll', isolatedTargetDOM: isoDOM, allowLinks: true, customProtocols: { 'someProtocol://' : 1 } }));
 }
 
 function saniData(isoDOM)
 {
-	// Specify options on the markup
-        // Options here take precedence over and override options specified in the method call (and default options)
-	$('#targetData').data('jSanity', { inputString: $("#badHtmlData").val(), overflow: 'scroll', allowLinks: true, dataAttributeCallback: function(name, value) { alert('[CALLBACK] Found a data-* attribute: ' + name + '=' + value); return "new value"; } });
-
-	// Call the sanitize method across all selected elements
-        // Options here take precedence over and override default values (but not options attached to markup)
-	$(".jSanitizeMeData").jSanity('sanitize', { allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 } });
+	$('#targetData').empty();
+	$('#targetData').append(jSanity.sanitize({inputString: $("#badHtmlData").val(), overflow: 'scroll', allowLinks: true, dataAttributeCallback: function(name, value) { alert('[CALLBACK] Found a data-* attribute: ' + name + '=' + value); return "new value"; }, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
 }
 
 function saniCircle(isoDOM)
 {
-	// Specify options on the markup
-        // Options here take precedence over and override options specified in the method call (and default options)
-	$('#targetCircle').data('jSanity', { inputString: $("#badHtmlCircle").val(), overflow: 'scroll', allowLinks: true });
-
-	// Call the sanitize method across all selected elements
-        // Options here take precedence over and override default values (but not options attached to markup)
-	$(".jSanitizeMeCircle").jSanity('sanitize', { allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 } });
+	$('#targetCircle').empty();
+	$('#targetCircle').append(jSanity.sanitize({inputString: $("#badHtmlCircle").val(), overflow: 'scroll', allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
 }
 
 function sani2(isoDOM)
 {
-	// Specify options on the markup
-        // Options here take precedence over and override options specified in the method call (and default options)
-	$('#targetSpan').data('jSanity', { inputString: $("#badHtmlSpan").val(), linkClickCallback: function () { alert('You clicked a link!  Script will let it proceed...'); return true; } });
-
-	// Call the sanitize method across all selected elements
-        // Options here take precedence over and override default values (but not options attached to markup)
-	$(".jSanitizeMe2").jSanity('sanitize', { allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 } });
+	$('#targetSpan').empty();
+	$('#targetSpan').append(jSanity.sanitize({inputString: $("#badHtmlSpan").val(), linkClickCallback: function () { alert('You clicked a link!  Script will let it proceed...'); return true; }, allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
 }
 
 </script>

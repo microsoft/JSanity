@@ -1056,7 +1056,7 @@ jSanity = {};
                 }
 
                 try {
-                    output.style.setProperty("display", "inline-block");
+                    output.style.setProperty( "display", "inline-block" );
 
                     if ( itemOptions.maxWidth ) {
                         output.style.setProperty( "max-width", itemOptions.maxWidth );
@@ -1087,18 +1087,18 @@ jSanity = {};
     }
 
     var inSupportedEnvironment = ( function () {
-      // TODO:
-      // Only check for IE, may need better solution for other platform/browsers?
-      // https://github.com/ded/bowser is a good one? But that will introduce a new dependency.
-      // More reference: http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
-      if ( typeof document.documentMode !== "undefined" ) {
-          // IE versions < 10 will not properly isolate markup passed in to document.implementation.createHTMLDocument
-          if ( document.documentMode < 10 ) {
-              return false;
-          }
-      }
+        // TODO:
+        // Only check for IE, may need better solution for other platform/browsers?
+        // https://github.com/ded/bowser is a good one? But that will introduce a new dependency.
+        // More reference: http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
+        if ( typeof document.documentMode !== "undefined" ) {
+            // IE versions < 10 will not properly isolate markup passed in to document.implementation.createHTMLDocument
+            if ( document.documentMode < 10 ) {
+                return false;
+            }
+        }
 
-      return true;
+        return true;
     } )();
 
     ns.isSupport = function () {
@@ -1109,7 +1109,7 @@ jSanity = {};
     ns.sanitize = function ( options ) {
         var sanitizer;
 
-        if (!inSupportedEnvironment) {
+        if ( !inSupportedEnvironment ) {
             throw "jSanity does not support run in current browser version.";
         }
 
