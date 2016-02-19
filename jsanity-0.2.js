@@ -1047,7 +1047,7 @@ jSanity = {};
                     onclickSet = elem.getAttribute( "onclick" );
 
                     if ( onclickSet === "/*jSanityClickCallback*/" ) {
-                        elem.onclick = itemOptions.externalContentCallback;
+                        elem.onclick = itemOptions.linkClickCallback;
                     } else if ( onclickSet === '/*jSanityReturnFalseCallback*/' ) {
                         elem.onclick = function () {
                             return false;
@@ -1057,7 +1057,7 @@ jSanity = {};
 
                 try {
                     output.style.setProperty("display", "inline-block");
-                    
+
                     if ( itemOptions.maxWidth ) {
                         output.style.setProperty( "max-width", itemOptions.maxWidth );
                     }
