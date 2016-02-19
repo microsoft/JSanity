@@ -7,7 +7,7 @@ Reference:<br>
 
 ## Status
 
-2/18/2016: [@kh9n](https://twitter.com/kh9n) has completed a significant refactoring
+2/18/2016: [@kh9n](https://twitter.com/kh9n) has completed a significant refactoring.
   - jQuery and setImmediate dependencies were removed!
   - jSanity now supports both sync and async modes
 
