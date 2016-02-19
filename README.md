@@ -29,7 +29,7 @@ Reference:<br>
   - Experimental override for default sanitization in various web platforms
   - Leverage newer features of the web platform (Shadow DOM, etc.)
   - Fix linkClickCallback support
-  - Remove jQuery from demo / benchmark pages
+  - Remove jQuery usage from demo / benchmark pages
 
 
 ## Special thanks for making jSanity a reality:
