@@ -948,10 +948,16 @@ jSanity = {};
                 // Need to avoid DOM squatting, eg: test<form><input name=parentNode>  (Credit: Gareth Heyes)
                 // Use removeNode() on IE and remove() elsewhere
                 //  removeNode() doesn't exist on Chrome, remove() doesn't exist on IE
+                // Use removeChild if all else fails.  Example where this is necessary (IE11): 
+                //  <svg xmlns="http://www.w3.org/2000/svg"><g onload="javascript:alert(1)"></g></svg>
                 try {
                     nodesToRemove[ i ].removeNode( true );
                 } catch ( e ) {
-                    nodesToRemove[ i ].remove();
+                    try {
+                        nodesToRemove[ i ].remove();
+                    } catch ( e ) {
+                        nodesToRemove[ i ].parentNode.removeChild(nodesToRemove[ i ]);
+                    }
                 }
             }
 
