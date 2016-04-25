@@ -948,10 +948,16 @@ jSanity = {};
                 // Need to avoid DOM squatting, eg: test<form><input name=parentNode>  (Credit: Gareth Heyes)
                 // Use removeNode() on IE and remove() elsewhere
                 //  removeNode() doesn't exist on Chrome, remove() doesn't exist on IE
+                // Use removeChild if all else fails.  Example where this is necessary (IE11): 
+                //  <svg xmlns="http://www.w3.org/2000/svg"><g onload="javascript:alert(1)"></g></svg>
                 try {
                     nodesToRemove[ i ].removeNode( true );
                 } catch ( e ) {
-                    nodesToRemove[ i ].remove();
+                    try {
+                        nodesToRemove[ i ].remove();
+                    } catch ( e ) {
+                        nodesToRemove[ i ].parentNode.removeChild(nodesToRemove[ i ]);
+                    }
                 }
             }
 
@@ -986,6 +992,17 @@ jSanity = {};
 
             return output;
         }
+        
+        // Prevent DOM clobbering for body, as per https://github.com/Microsoft/JSanity/issues/5
+        function safeBody( srcDoc ) {
+            if (Object.getOwnPropertyDescriptor(Document.prototype, 'body')) {
+                // Webkit
+                return Object.getOwnPropertyDescriptor(Document.prototype, 'body').get.call(srcDoc);
+            } else {
+                // Firefox
+                return Object.getOwnPropertyDescriptor(document.__proto__, 'body').get.call(srcDoc);
+            }
+        }
 
         this.sanitizeMethod = function sanitizeMethod( options ) {
             var spanBuffer, iSpan, output, i, elem, onclickSet;
@@ -1016,7 +1033,7 @@ jSanity = {};
             // TBD: Potentially unnecessary, consider removing
             iSpan = srcDoc.createElement( "span" );
             iSpan.innerHTML = itemOptions.inputString;
-            srcDoc.body.appendChild( iSpan );
+            safeBody(srcDoc).appendChild( iSpan );
 
             // Detect DOM clobbering, as per https://github.com/Microsoft/JSanity/issues/5
             if ( srcDoc.createTreeWalker !== Document.prototype.createTreeWalker ) {
@@ -1028,7 +1045,7 @@ jSanity = {};
 
             // Do an inorder traversal, then build up a document fragment and when it's finished attach it into the doc
             // Nodefilter currently disabled for perf (yes, it makes a difference!)
-            tw = srcDoc.createTreeWalker( srcDoc.body, NodeFilter.SHOW_ALL, /* nodeFilter */ null, false );
+            tw = srcDoc.createTreeWalker( safeBody(srcDoc), NodeFilter.SHOW_ALL, /* nodeFilter */ null, false );
 
             // targetElementID = $(this).attr('id');
             scheduleNewWalkerJob( tw.currentNode, "default", itemOptions.isolatedTargetDOM ? destDoc.body : spanBuffer );

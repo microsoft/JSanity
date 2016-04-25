@@ -2,52 +2,50 @@
 <html>
 <head>
   <title>jSanity Demo</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=10" >
-<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.js"></script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <script type="text/javascript" src="jsanity-0.3.js"></script>
 </head>
-<body>
+<body onload="ol();">
 
 <script type="text/javascript">
 
-$(document).ready(function() {
+function ol() {
+	document.getElementById('badHtmlDiv').value = "<script>alert(/xss/);</" + "script>\r\n\r\n<img src=x onerror=alert('xss') />\r\n\r\nTesting script...";
 
-	$("#badHtmlDiv").val("<script>alert(/xss/);</" + "script>\r\n\r\n<img src=x onerror=alert('xss') />\r\n\r\nTesting script...");
+	document.getElementById('badHtmlData').value = "<p class=\"myClass\" \r\n   data-foo=\"somedata\" \r\n   name=\"foobar\" \r\n   id=\"baz\">\r\n\r\nElement with a data attribute\r\n\r\n</p>";
 
-	$("#badHtmlData").val("<p class=\"myClass\" \r\n   data-foo=\"somedata\" \r\n   name=\"foobar\" \r\n   id=\"baz\">\r\n\r\nElement with a data attribute\r\n\r\n</p>");
+	document.getElementById('badHtmlCircle').value = "<b style=\"color:red;position:fixed;top:0;left:0;font-family:Arial,Helvetica,sans-serif;\">\r\n\r\nzzzzz<textarea>zzzz</textarea>\r\n\r\n<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"><circle cx=\"100\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"2\" fill=\"red\"/>\r\n</svg>\r\n\r\n</b>";
 
-        $("#badHtmlCircle").val("<b style=\"color:red;position:fixed;top:0;left:0;font-family:Arial,Helvetica,sans-serif;\">\r\n\r\nzzzzz<textarea>zzzz</textarea>\r\n\r\n<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"><circle cx=\"100\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"2\" fill=\"red\"/>\r\n</svg>\r\n\r\n</b>");
-
-	$("#badHtmlSpan").val("<a href=\"http://www.microsoft.com\">\r\nlink to Microsoft\r\n</a><br>\r\n\r\n<a href=\"javascript:alert();\">\r\njavascript link\r\n</a><br>\r\n\r\n<a href=\"asdf.htm\">\r\nrelative link\r\n</a>");
-});
+	document.getElementById('badHtmlSpan').value = "<a href=\"http://www.microsoft.com\">\r\nlink to Microsoft\r\n</a><br>\r\n\r\n<a href=\"javascript:alert();\">\r\njavascript link\r\n</a><br>\r\n\r\n<a href=\"asdf.htm\">\r\nrelative link\r\n</a>";
+}
 
 function nosani1()
 {
-	$(".jSanitizeMe1").html($("#badHtmlDiv").val());
+	document.getElementById('targetDiv').innerHTML = document.getElementById('badHtmlDiv').value;
 }
 
 function sani1(isoDOM)
-{	
-	$('#targetDiv').empty();
-	$('#targetDiv').append(jSanity.sanitize({inputString: $("#badHtmlDiv").val(), overflow: 'scroll', isolatedTargetDOM: isoDOM, allowLinks: true, customProtocols: { 'someProtocol://' : 1 } }));
+{
+	document.getElementById('targetDiv').innerHTML = '';
+	document.getElementById('targetDiv').appendChild(jSanity.sanitize({inputString: document.getElementById('badHtmlDiv').value, overflow: 'scroll', isolatedTargetDOM: isoDOM, allowLinks: true, customProtocols: { 'someProtocol://' : 1 } }));
 }
 
 function saniData(isoDOM)
 {
-	$('#targetData').empty();
-	$('#targetData').append(jSanity.sanitize({inputString: $("#badHtmlData").val(), overflow: 'scroll', allowLinks: true, dataAttributeCallback: function(name, value) { alert('[CALLBACK] Found a data-* attribute: ' + name + '=' + value); return "new value"; }, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
+	document.getElementById('targetData').innerHTML = '';
+	document.getElementById('targetData').appendChild(jSanity.sanitize({inputString: document.getElementById('badHtmlData').value, overflow: 'scroll', allowLinks: true, dataAttributeCallback: function(name, value) { alert('[CALLBACK] Found a data-* attribute: ' + name + '=' + value); return "new value"; }, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
 }
 
 function saniCircle(isoDOM)
 {
-	$('#targetCircle').empty();
-	$('#targetCircle').append(jSanity.sanitize({inputString: $("#badHtmlCircle").val(), overflow: 'scroll', allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
+	document.getElementById('targetCircle').innerHTML = '';
+	document.getElementById('targetCircle').appendChild(jSanity.sanitize({inputString: document.getElementById('badHtmlCircle').value, overflow: 'scroll', allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
 }
 
 function sani2(isoDOM)
 {
-	$('#targetSpan').empty();
-	$('#targetSpan').append(jSanity.sanitize({inputString: $("#badHtmlSpan").val(), linkClickCallback: function () { alert('You clicked a link!  Script will let it proceed...'); return true; }, allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
+	document.getElementById('targetSpan').innerHTML = '';
+	document.getElementById('targetSpan').appendChild(jSanity.sanitize({inputString: document.getElementById('badHtmlSpan').value, linkClickCallback: function () { alert('You clicked a link!  Script will let it proceed...'); return true; }, allowLinks: true, isolatedTargetDOM: isoDOM, customProtocols: { 'someProtocol://' : 1 }}));
 }
 
 </script>
@@ -70,7 +68,7 @@ Note: Be sure to specify a unique ID for all sanitization targets.  This allows 
 </div>
 <input type=button value="Inject without sanitization" onclick="nosani1();">
 <input type=button value="Sanitize!" onclick="sani1(false);">
-<input type=button value="Show output markup" onclick="alert($('.jSanitizeMe1').html());">
+<input type=button value="Show output markup" onclick="alert(document.getElementById('targetDiv').innerHTML);">
 
 <br>
 <br>
@@ -86,7 +84,7 @@ Data attribute callback and NAME/ID prefixing example<br>
 dataAttributeCallback: function(name, value) <br>{ <br> alert('[CALLBACK] Found a data-* attribute: ' + name + '=' + value);<br><br> return "new value"; <br>}<br>
 </code>
 <input type=button value="Sanitize with a data attribute handler" onclick="saniData(false);">
-<input type=button value="Show output markup" onclick="alert($('.jSanitizeMeData').html());">
+<input type=button value="Show output markup" onclick="alert(document.getElementById('targetData').innerHTML);">
 
 <br>
 <br>
@@ -98,7 +96,7 @@ SVG namespace support and overlay attack mitigation<br>
 <div ID="targetCircle" class="jSanitizeMeCircle" style="border-style: dotted; border-width: 1px">
 [Output DIV #3]
 </div>
-<input type=button value="Sanitize with .toStaticHTML()" onclick="$('#targetCircle').html(toStaticHTML($('#badHtmlCircle').val()))">
+<input type=button value="Sanitize with .toStaticHTML()" onclick="document.getElementById('targetCircle').innerHTML = toStaticHTML(document.getElementById('badHtmlCircle').value);">
 <input type=button value="Sanitize with jSanity" onclick="saniCircle(false);">
 
 <br>

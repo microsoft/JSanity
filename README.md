@@ -20,7 +20,6 @@ Reference:<br>
 
 
 ## Todo
-  - Handle open issues (DOM clobbering bugs in particular)
   - Support for more elements and attributes
   - Update / document the demo & benchmark pages
   - Unit tests
@@ -28,8 +27,8 @@ Reference:<br>
   - Integration with one or more javascript frameworks
   - Experimental override for default sanitization in various web platforms
   - Leverage newer features of the web platform (Shadow DOM, etc.)
-  - Fix linkClickCallback support
-  - Remove jQuery usage from demo / benchmark pages
+  - Remove jQuery usage from benchmark page
+  - General code clean up / modernization
 
 
 ## Special thanks for making jSanity a reality:
