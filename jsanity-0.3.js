@@ -958,14 +958,17 @@ jSanity = {};
             tw.currentNode = savedCurrentNode;
         }
 
-        function shadowCopy( des ) {
-            if ( !des ) {
+        function shadowCopy( output ) {
+            if ( !output ) {
                 throw "invalid number of parameters. At least one is expected";
+            }
+
+            if ( output.toString() != "[object Object]" ) {
+                throw "Invalid type of parameter";
             }
 
             var i = 0;
             var source = null;
-            var output = {};
 
             for ( ; i < arguments.length; i++ ) {
                 source = arguments[ i ];
