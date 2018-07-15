@@ -17,6 +17,7 @@ jSanity = {};
         customProtocols: {}, // Additional protocol schemes to allow through sanitization
         allowRelativeURLs: false, // Implementation TBD
         allowAudioVideo: false, // Allow HTML5 AUDIO and VIDEO elements
+        unsupportedContentCallback: null, // Callback for unsupported content, such as elements/attributes/styles
         externalContentCallback: // Callback to handle URLs referencing external content
         // Caller should override this function with a more appropriate one given the hosting scenario
             function ( context, name, data, knownProtocols ) {
@@ -457,313 +458,174 @@ jSanity = {};
                     'feDiffuseLighting': 1,
                     'feSpecularLighting': 1,
                     'font': 1,
-                    'textPath': 1,
-                    // Rests
-                    'altGlyph': 1,
-                    'altGlyphDef': 1,
-                    'altGlyphItem': 1,
-                    'animate': 1,
-                    'animateColor': 1,
-                    'animateMotion': 1,
-                    'animateTransform': 1,
-                    'color-profile': 1,
-                    'cursor': 1,
-                    'desc': 1,
-                    'font-face': 1,
-                    'font-face-format': 1,
-                    'font-face-name': 1,
-                    'font-face-src': 1,
-                    'font-face-uri': 1,
-                    'foreignObject': 1,
-                    'glyph': 1,
-                    'glyphRef': 1,
-                    'hkern': 1,
-                    'metadata': 1,
-                    'missing-glyph': 1,
-                    'mpath': 1,
-                    'set': 1,
-                    'style': 1,
-                    'title': 1,
-                    'view': 1,
-                    'vkern': 1
+                    'textPath': 1
                 },
-                knownAttributes: {
-                    // style properties
-                    'color': 1,
-                    'stroke': 1,
-                    'stroke-width': 1,
-                    'stroke-linecap': 1,
-                    'stroke-linejoin': 1,
-                    'stroke-miterlimit': 1,
-                    'stroke-dasharray': 1,
-                    'stroke-dashoffset': 1,
-                    'stroke-opacity': 1,
-                    'fill': 1,
-                    'fill-rule': 1,
-                    'fill-opacity': 1,
-                    'marker-start': 1,
-                    'marker-mid': 1,
-                    'marker-end': 1,
-                    'display': 1,
-                    'visibility': 1,
-                    'overflow': 1,
-                    'transform': 1,
-                    'clip': 1,
-                    'clip-rule': 1,
-                    'clip-path': 1,
-                    'opacity': 1,
-                    'stop-color': 1,
-                    'stop-opacity': 1,
-                    'mask': 1,
-                    'font-family': 1,
-                    'font-style': 1,
-                    'font-variant': 1,
-                    'font-weight': 1,
-                    'font-stretch': 1,
-                    'font-size': 1,
-                    'font': 1,
-                    'text-anchor': 1,
-                    'letter-spacing': 1,
-                    'word-spacing': 1,
-                    'direction': 1,
-                    'unicode-bidi': 1,
-                    'text-decoration': 1,
-                    'writing-mode': 1,
-                    // filter attributes (t-frge)
-                    'filter': 1,
-                    'filterUnits': 1,
-                    'primitiveUnits': 1,
-                    // filter primitive attributes
-                    'width': 1,
-                    'height': 1,
-                    'x': 1,
-                    'y': 1,
-                    'color-interpolation-filters': 1,
-                    'in': 1,
-                    'in2': 1,
-                    'result': 1,
-                    // feColorMatrix
-                    'values': 1,
-                    // feConvolveMatrix
-                    'order': 1,
-                    'divisor': 1,
-                    'bias': 1,
-                    'targetX': 1,
-                    'targetY': 1,
-                    'edgeMode': 1,
-                    'preserveAlpha': 1,
-                    'kernelMatrix': 1,
-                    // feGaussianBlur
-                    'stdDeviation': 1,
-                    // feImage
-                    'preserveAspectRatio': 1,
-                    // feBlend
-                    'mode': 1,
-                    // feComponentTransfer
-                    'amplitude': 1,
-                    'exponent': 1,
-                    'intercept': 1,
-                    'offset': 1,
-                    'slope': 1,
-                    'tableValues': 1,
-                    'type': 1,
-                    // feComposite
-                    'operator': 1,
-                    'k1': 1,
-                    'k2': 1,
-                    'k3': 1,
-                    'k4': 1,
-                    // feTurbulence
-                    'baseFrequency': 1,
-                    'numOctaves': 1,
-                    'seed': 1,
-                    'stitchTiles': 1,
-                    // feDisplacementMap
-                    'scale': 1,
-                    'xChannelSelector': 1,
-                    'yChannelSelector': 1,
-                    // feFlood
-                    'flood-color': 1,
-                    'flood-opacity': 1,
-                    // feMorphology
-                    'radius': 1,
-                    // feDiffuseLighting and feSpecularLighting
-                    'lighting-color': 1,
-                    'surfaceScale': 1,
-                    'kernelUnitLength': 1,
-                    'diffuseConstant': 1,
-                    'specularConstant': 1,
-                    'specularExponent': 1,
-                    // feDistantLight
-                    'azimuth': 1,
-                    'elevation': 1,
-                    // fePointLight
-                    'z': 1,
-                    // feSpotLight
-                    'pointsAtX': 1,
-                    'pointsAtY': 1,
-                    'pointsAtZ': 1,
-                    'limitingConeAngle': 1,
-                    // all elements
-                    'id': 1,
-                    'style': 1,
-                    'class': 1,
-                    // marker
-                    'refX': 1,
-                    'refY': 1,
-                    'markerWidth': 1,
-                    'markerHeight': 1,
-                    'markerUnits': 1,
-                    'orient': 1,
-                    // clipPath
-                    'clipPathUnits': 1,
-                    // use, image, linearGradient, radialGradient, pattern, tref
-                    'href': 1,
-                    // text, tspan, tref
-                    'dx': 1,
-                    'dy': 1,
-                    // linearGradient, radialGradient
-                    'gradientUnits': 1,
-                    'gradientTransform': 1,
-                    'spreadMethod': 1,
-                    // linearGradient
-                    'x1': 1,
-                    'x2': 1,
-                    'y1': 1,
-                    'y2': 1,
-                    // radialGradient
-                    'cx': 1,
-                    'cy': 1,
-                    'r': 1,
-                    'fx': 1,
-                    'fy': 1,
-                    // mask
-                    'maskUnits': 1,
-                    'maskContentUnits': 1,
-                    // pattern
-                    'patternUnits': 1,
-                    'patternContentUnits': 1,
-                    'patternTransform': 1,
-                    // conditional processing
-                    'requiredExtensions': 1,
-                    'requiredFeatures': 1,
-                    'systemLanguage': 1,
-                    // rests
-                    'accent-height': 1,
-                    'accumulate': 1,
-                    'additive': 1,
-                    'alignment-baseline': 1,
-                    'alphabetic': 1,
-                    'arabic-form': 1,
-                    'ascent': 1,
-                    'attributeName': 1,
-                    'attributeType': 1,
-                    'baseProfile': 1,
-                    'baseline-shift': 1,
-                    'bbox': 1,
-                    'begin': 1,
-                    'by': 1,
-                    'calcMode': 1,
-                    'cap-height': 1,
-                    'color-interpolation': 1,
-                    'color-profile': 1,
-                    'color-rendering': 1,
-                    'contentStyleType': 1,
-                    'cursor': 1,
-                    'd': 1,
-                    'descent': 1,
-                    'dominant-baseline': 1,
-                    'dur': 1,
-                    'enable-background': 1,
-                    'end': 1,
-                    'externalResourcesRequired': 1,
-                    'filterRes': 1,
-                    'font-size-adjust': 1,
-                    'format': 1,
-                    'from': 1,
-                    'g1': 1,
-                    'g2': 1,
-                    'glyph-name': 1,
-                    'glyph-orientation-horizontal': 1,
-                    'glyph-orientation-vertical': 1,
-                    'glyphRef': 1,
-                    'hanging': 1,
-                    'horiz-adv-x': 1,
-                    'horiz-origin-x': 1,
-                    'horiz-origin-y': 1,
-                    'ideographic': 1,
-                    'image-rendering': 1,
-                    'k': 1,
-                    'kerning': 1,
-                    'keyPoints': 1,
-                    'keySplines': 1,
-                    'keyTimes': 1,
-                    'lang': 1,
-                    'lengthAdjust': 1,
-                    'local': 1,
-                    'marker': 1,
-                    'mathematical': 1,
-                    'max': 1,
-                    'media': 1,
-                    'method': 1,
-                    'min': 1,
-                    'name': 1,
-                    'orientation': 1,
-                    'origin': 1,
-                    'overline-position': 1,
-                    'overline-thickness': 1,
-                    'panose-1': 1,
-                    'path': 1,
-                    'pathLength': 1,
-                    'pointer-events': 1,
-                    'points': 1,
-                    'rendering-intent': 1,
-                    'repeatCount': 1,
-                    'repeatDur': 1,
-                    'restart': 1,
-                    'rotate': 1,
-                    'rx': 1,
-                    'ry': 1,
-                    'shape-rendering': 1,
-                    'spacing': 1,
-                    'startOffset': 1,
-                    'stemh': 1,
-                    'stemv': 1,
-                    'strikethrough-position': 1,
-                    'strikethrough-thickness': 1,
-                    'string': 1,
-                    'target': 1,
-                    'text-rendering': 1,
-                    'textLength': 1,
-                    'title': 1,
-                    'to': 1,
-                    'u1': 1,
-                    'u2': 1,
-                    'underline-position': 1,
-                    'underline-thickness': 1,
-                    'unicode': 1,
-                    'unicode-range': 1,
-                    'units-per-em': 1,
-                    'v-alphabetic': 1,
-                    'v-hanging': 1,
-                    'v-ideographic': 1,
-                    'v-mathematical': 1,
-                    'version': 1,
-                    'vert-adv-y': 1,
-                    'vert-origin-x': 1,
-                    'vert-origin-y': 1,
-                    'viewBox': 1,
-                    'viewTarget': 1,
-                    'widths': 1,
-                    'x-height': 1,
-                    'actuate': 1,
-                    'arcrole': 1,
-                    'role': 1,
-                    'show': 1,
-                    'base': 1,
-                    'space': 1,
-                    'zoomAndPan': 1
-                }
+              knownAttributes: {
+                // shape attributes
+                'd': 1,
+                'x': 1,
+                'y': 1,
+                'width': 1,
+                'height': 1,
+                'rx': 1,
+                'ry': 1,
+                'cx': 1,
+                'cy': 1,
+                'r': 1,
+                'x1': 1,
+                'y1': 1,
+                'x2': 1,
+                'y2': 1,
+                'points': 1,
+                // viewport
+                'viewBox': 1,
+                'preserveAspectRatio': 1,
+                // style properties
+                'color': 1,
+                'stroke': 1,
+                'stroke-width': 1,
+                'stroke-linecap': 1,
+                'stroke-linejoin': 1,
+                'stroke-miterlimit': 1,
+                'stroke-dasharray': 1,
+                'stroke-dashoffset': 1,
+                'stroke-opacity': 1,
+                'fill': 1,
+                'fill-rule': 1,
+                'fill-opacity': 1,
+                'marker-start': 1,
+                'marker-mid': 1,
+                'marker-end': 1,
+                'display': 1,
+                'visibility': 1,
+                'overflow': 1,
+                'transform': 1,
+                'clip': 1,
+                'clip-rule': 1,
+                'clip-path': 1,
+                'opacity': 1,
+                'stop-color': 1,
+                'stop-opacity': 1,
+                'mask': 1,
+                'font-family': 1,
+                'font-style': 1,
+                'font-variant': 1,
+                'font-weight': 1,
+                'font-stretch': 1,
+                'font-size': 1,
+                'text-anchor': 1,
+                'letter-spacing': 1,
+                'word-spacing': 1,
+                'direction': 1,
+                'unicode-bidi': 1,
+                'text-decoration': 1,
+                'writing-mode': 1,
+                // filter attributes (t-frge)
+                'filter': 1,
+                'filterUnits': 1,
+                'primitiveUnits': 1,
+                'color-interpolation-filters': 1,
+                'in': 1,
+                'in2': 1,
+                'result': 1,
+                // feColorMatrix
+                'values': 1,
+                // feConvolveMatrix
+                'order': 1,
+                'divisor': 1,
+                'bias': 1,
+                'targetX': 1,
+                'targetY': 1,
+                'edgeMode': 1,
+                'preserveAlpha': 1,
+                'kernelMatrix': 1,
+                // feGaussianBlur
+                'stdDeviation': 1,
+                // feBlend
+                'mode': 1,
+                // feComponentTransfer
+                'amplitude': 1,
+                'exponent': 1,
+                'intercept': 1,
+                'offset': 1,
+                'slope': 1,
+                'tableValues': 1,
+                'type': 1,
+                // feComposite
+                'operator': 1,
+                'k1': 1,
+                'k2': 1,
+                'k3': 1,
+                'k4': 1,
+                // feTurbulence
+                'baseFrequency': 1,
+                'numOctaves': 1,
+                'seed': 1,
+                'stitchTiles': 1,
+                // feDisplacementMap
+                'scale': 1,
+                'xChannelSelector': 1,
+                'yChannelSelector': 1,
+                // feFlood
+                'flood-color': 1,
+                'flood-opacity': 1,
+                // feMorphology
+                'radius': 1,
+                // feDiffuseLighting and feSpecularLighting
+                'lighting-color': 1,
+                'surfaceScale': 1,
+                'kernelUnitLength': 1,
+                'diffuseConstant': 1,
+                'specularConstant': 1,
+                'specularExponent': 1,
+                // feDistantLight
+                'azimuth': 1,
+                'elevation': 1,
+                // fePointLight
+                'z': 1,
+                // feSpotLight
+                'pointsAtX': 1,
+                'pointsAtY': 1,
+                'pointsAtZ': 1,
+                'limitingConeAngle': 1,
+                // all elements
+                'id': 1,
+                'style': 1,
+                'class': 1,
+                // marker
+                'refX': 1,
+                'refY': 1,
+                'markerWidth': 1,
+                'markerHeight': 1,
+                'markerUnits': 1,
+                'orient': 1,
+                // clipPath
+                'clipPathUnits': 1,
+                // use, image, linearGradient, radialGradient, pattern, tref
+                'href':1,
+                'xlink:href': 1,
+                // text, tspan, tref
+                'dx': 1,
+                'dy': 1,
+                // linearGradient, radialGradient
+                'gradientUnits': 1,
+                'gradientTransform': 1,
+                'spreadMethod': 1,
+                // radialGradient
+                'fx': 1,
+                'fy': 1,
+                // mask
+                'maskUnits': 1,
+                'maskContentUnits': 1,
+                // pattern
+                'patternUnits': 1,
+                'patternContentUnits': 1,
+                'patternTransform': 1,
+                // conditional processing
+                'requiredExtensions': 1,
+                'requiredFeatures': 1,
+                'systemLanguage': 1
+              }
             }
 
             // Math namespace
@@ -774,7 +636,8 @@ jSanity = {};
             'http://': 1,
             'https://': 1,
             'ftp://': 1,
-            'mailto:': 1
+            'mailto:': 1,
+            '#': 1,
         };
 
         var knownCSSProperties = {
@@ -1025,6 +888,7 @@ jSanity = {};
 
             savedCurrentNode = tw.currentNode;
             var nodesToRemove = new Array();
+            var linksToReset = new Array();
             var setOnclick;
             var modifiedProperty;
             var childStyle;
@@ -1090,7 +954,7 @@ jSanity = {};
                                     attN = child.attributes[ i ].name.toLowerCase();
                                     if ( attN in knownHTML[ ns ].knownAttributes ) {
                                         // Link handling
-                                        if ( attN === "href" ) {
+                                        if ( attN === "href" || attN === "xlink:href" ) {
                                             validatedProtocol = false;
                                             if ( itemOptions.allowLinks ) {
                                                 for ( var protocol in knownProtocols ) {
@@ -1100,7 +964,7 @@ jSanity = {};
 
                                                     if ( child.attributes[ i ].value.substring( 0, protocol.length ) === protocol ) {
                                                         validatedProtocol = true;
-                                                        cElt.setAttribute( "href", child.attributes[ i ].value );
+                                                        cElt.setAttribute( attN, child.attributes[ i ].value );
 
                                                         if ( itemOptions.linkClickCallback !== null ) {
                                                             // This link must be re-activated later to pass through to the page DOM
@@ -1114,6 +978,7 @@ jSanity = {};
                                             if ( !validatedProtocol ) {
                                                 // Link didn't pass validation, allow the link but make it go nowhere
 
+                                                linksToReset.push( attN );
                                                 setOnclick = "/*jSanityReturnFalseCallback*/";
                                             }
                                         } else if ( attN === "class" ) {
@@ -1188,14 +1053,19 @@ jSanity = {};
                                         }
 
                                         consoleLog( 1, 'Encountered unsupported attribute: ' + attN );
+                                        if( itemOptions.unsupportedContentCallback ) {
+                                            itemOptions.unsupportedContentCallback( "attribute", attN );
+                                        }
                                     }
                                 }
 
                                 // Do this late so that we don't affect the loop.  (Issue observed in directModifySource mode.)
                                 if ( setOnclick ) {
-                                    if ( setOnclick === "/*jSanityReturnFalseCallback*/" ) {
-                                        cElt.setAttribute( "href", "#" );
+
+                                    for ( var i = 0; i < linksToReset.length; i++ ) {
+                                        cElt.setAttribute( linksToReset[ i ], "#" );
                                     }
+                                    linksToReset.length = 0;
                                     cElt.setAttribute( "onclick", setOnclick );
                                     setOnClickArray.push( cElt );
                                 }
@@ -1241,6 +1111,9 @@ jSanity = {};
                                         }
 
                                         consoleLog( 1, 'Encountered unsupported style property: ' + childStyle );
+                                        if( itemOptions.unsupportedContentCallback ) {
+                                            itemOptions.unsupportedContentCallback( "style", childStyle );
+                                        }
                                     }
                                 }
                             }
@@ -1268,6 +1141,9 @@ jSanity = {};
                             }
 
                             consoleLog( 1, 'Encountered unsupported element: ' + tagN );
+                            if( itemOptions.unsupportedContentCallback ) {
+                                itemOptions.unsupportedContentCallback( "element", tagN );
+                            }
                         }
                         break;
 
