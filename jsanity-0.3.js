@@ -843,7 +843,7 @@ jSanity = {};
             'text-shadow': 1,
             'text-wrap': 1,
             'word-break': 1,
-            'word-wrap': 1
+            'word-wrap': 1,
 
             // 2D/3D transform properties
             // TBD
@@ -858,6 +858,36 @@ jSanity = {};
             // background [CSS shorthand property not currently implemented, may not actually be necessary, would require parsing],
             // border-image-* [no current browser support (?)]
             // cursor [supports a URL], text-overflow [may allow overlay attack?]
+
+            // SVG
+            'alignment-baseline': 1,
+            'baseline-shift': 1,
+            'clip-rule': 1,
+            'color-interpolation': 1,
+            'color-interpolation-filters': 1,
+            'color-rendering': 1,
+            'dominant-baseline': 1,
+            'fill-opacity': 1,
+            'fill-rule': 1,
+            'flood-color': 1,
+            'flood-opacity': 1,
+            'image-rendering': 1,
+            'kerning': 1,
+            'lighting-color': 1,
+            'shape-rendering': 1,
+            'stop-color': 1,
+            'stop-opacity': 1,
+            'stroke': 1,
+            'stroke-dasharray': 1,
+            'stroke-dashoffset': 1,
+            'stroke-linecap': 1,
+            'stroke-linejoin': 1,
+            'stroke-miterlimit': 1,
+            'stroke-opacity': 1,
+            'stroke-width': 1,
+            'text-anchor': 1,
+            'text-rendering': 1,
+            'writing-mode': 1
         }
 
         // Explicitly unsafe CSS properties:
