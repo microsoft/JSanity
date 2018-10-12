@@ -939,7 +939,7 @@ jSanity = {};
                 switch ( child.nodeType ) {
                     case child.ELEMENT_NODE:
                         // Operate on elements that are known (allow-listed) for the current namespace
-                        tagN = child.tagName.toLowerCase();
+                        tagN = child.tagName;
                         if ( tagN in knownHTML[ ns ].knownElements ) {
                             // Preserve the current namespace as it may change for the element we are about to traverse
                             oldNS = ns;
@@ -993,7 +993,7 @@ jSanity = {};
                                     // alert(tempString1);
 
                                     // Handle known attributes
-                                    attN = child.attributes[ i ].name.toLowerCase();
+                                    attN = child.attributes[ i ].name;
                                     if ( attN in knownHTML[ ns ].knownAttributes ) {
                                         // Link handling
                                         if ( attN === "href" ) {
