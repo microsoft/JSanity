@@ -7,6 +7,7 @@ jSanity = {};
 
     // Default sanitization options
     var defaults = {
+        version: '0.3',
         inputString: '', // The string to sanitize and put into the DOM
         maxWidth: '600px', // Recommended to prevent outside UI from being pushed to the right
         maxHeight: '200px', // Recommended to prevent outside UI from being pushed down
