@@ -55,7 +55,7 @@ jSanity = {};
         //  The ID of the target element is also used in the prefix, if there is one
         dataAttributeCallback: null, // Callback for handling of data-* attributes which are otherwise unsafe by default
         debugLevel: 0, // Debug level > 0 will log dropped elements, attributes, etc. to the console
-        onFinishedCallback: null // Callback method with purified DOM tree as parameter, if this property be set, then the sanitize will be a asynchronize call,
+        onFinishedCallback: null, // Callback method with purified DOM tree as parameter, if this property be set, then the sanitize will be a asynchronize call,
             // Otherwise this will be a synchronize call
         allowStylesheetsOnDirectModifySource: false, // Allow STYLE elements to be added to the source DOM
     };
