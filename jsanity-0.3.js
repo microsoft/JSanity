@@ -55,8 +55,9 @@ jSanity = {};
         //  The ID of the target element is also used in the prefix, if there is one
         dataAttributeCallback: null, // Callback for handling of data-* attributes which are otherwise unsafe by default
         debugLevel: 0, // Debug level > 0 will log dropped elements, attributes, etc. to the console
-        onFinishedCallback: null // Callback method with purified DOM tree as parameter, if this property be set, then the sanitize will be a asynchronize call,
+        onFinishedCallback: null, // Callback method with purified DOM tree as parameter, if this property be set, then the sanitize will be a asynchronize call,
             // Otherwise this will be a synchronize call
+        allowStylesheetsOnDirectModifySource: false, // Allow STYLE elements to be added to the source DOM
     };
 
     var schedulerClass = function () {
@@ -967,7 +968,7 @@ jSanity = {};
                                 killElt = true;
                             }
 
-                            if ( tagN === "style" ) {
+                            if ( tagN === "style" && !itemOptions.allowStylesheetsOnDirectModifySource ) {
                                 // In directModifySource mode the style element actually makes it through.  For now let's just explicitly kill it.
                                 killElt = true;
 
@@ -1022,7 +1023,7 @@ jSanity = {};
 
                                                 setOnclick = "/*jSanityReturnFalseCallback*/";
                                             }
-                                        } else if ( attN === "class" ) {
+                                        } else if ( attN === "class" && !itemOptions.allowStylesheetsOnDirectModifySource ) {
                                             // Multiple class names can be included in a single attribute, delimited by whitespace
                                             // We should prefix each class name, but this requires parsing
                                             // TBD: Implement a callback to allow callers to handle CLASS attributes, or otherwise parse the CLASS
